@@ -1,31 +1,28 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { SlHome } from "react-icons/sl";
-import { BsInfoSquare, BsEnvelopeAt } from "react-icons/bs";
-import { FaTshirt, FaRedhat } from "react-icons/fa";
+import {
+  FaHome,
+  FaSearch,
+  FaWallet,
+  FaSignOutAlt,
+  FaCheckCircle,
+} from "react-icons/fa";
+import { MdAccountCircle } from "react-icons/md";
+import { IoSettings } from "react-icons/io5";
+import Image from "next/image";
 
 import logo from "@/public/logo.svg";
 
 export default function Sidebar({ show, setter }) {
   const router = useRouter();
 
-  // Define our base class
   const className =
-    "bg-black w-[250px] transition-[margin-left] ease-in-out duration-500 fixed md:static top-0 bottom-0 left-0 z-40";
-  // Append class based on state of sidebar visiblity
+    "bg-sky-400 w-[250px] transition-[margin-left] ease-in-out duration-500 fixed md:static top-0 bottom-0 left-0 z-40";
   const appendClass = show ? " ml-0" : " ml-[-250px] md:ml-0";
 
-  // Clickable menu items
   const MenuItem = ({ icon, name, route }) => {
-    // Highlight menu item based on currently displayed route
     const colorClass =
-      router.pathname === route
-        ? "text-white"
-        : "text-white/50 hover:text-white";
+      router.pathname === route ? "text-white" : "text-white hover:text-white";
 
     return (
       <Link
@@ -41,7 +38,6 @@ export default function Sidebar({ show, setter }) {
     );
   };
 
-  // Overlay to prevent clicks in background, also serves as our close button
   const ModalOverlay = () => (
     <div
       className={`flex md:hidden fixed top-0 right-0 bottom-0 left-0 bg-black/50 z-30`}
@@ -56,16 +52,33 @@ export default function Sidebar({ show, setter }) {
       <div className={`${className}${appendClass}`}>
         <div className="p-2 flex">
           <Link href="/">
-            {/*eslint-disable-next-line*/}
-            <img src={logo.src} alt="Company Logo" width={300} height={300} />
+            <Image src={logo.src} alt="Company Logo" width={300} height={300} />
           </Link>
         </div>
         <div className="flex flex-col">
-          <MenuItem name="Home" route="/" icon={<SlHome />} />
-          <MenuItem name="T-Shirts" route="/t-shirts" icon={<FaTshirt />} />
-          <MenuItem name="Hats" route="/hats" icon={<FaRedhat />} />
-          <MenuItem name="About Us" route="/about" icon={<BsInfoSquare />} />
-          <MenuItem name="Contact" route="/contact" icon={<BsEnvelopeAt />} />
+          <MenuItem name="Home" route="/" icon={<FaHome />} />
+          <MenuItem name="Search" route="/issuer/search" icon={<FaSearch />} />
+          <MenuItem
+            name="Issue"
+            route="/issuer/issue"
+            icon={<FaCheckCircle />}
+          />
+          <MenuItem
+            name="Account"
+            route="/issuer/account"
+            icon={<MdAccountCircle />}
+          />
+          <MenuItem name="Wallet" route="/issuer/wallet" icon={<FaWallet />} />
+          <MenuItem
+            name="Sign Out"
+            route="/issuer/signout"
+            icon={<FaSignOutAlt />}
+          />
+          <MenuItem
+            name="Settings"
+            route="/issuer/settings"
+            icon={<IoSettings />}
+          />
         </div>
       </div>
       {show ? <ModalOverlay /> : <></>}

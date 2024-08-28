@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiMenu as Icon } from "react-icons/fi";
 import { FaUser } from "react-icons/fa";
+import Image from "next/image";
 
 import logo from "@/public/logo.svg";
 
@@ -16,8 +17,7 @@ export default function MenuBarMobile({ setter }) {
         <Icon />
       </button>
       <Link href="/" className="mx-auto">
-        {/*eslint-disable-next-line*/}
-        <img src={logo.src} alt="Company Logo" width={50} height={50} />
+        <Image src={logo.src} alt="Company Logo" width={50} height={50} />
       </Link>
       <Link className="text-3xl flex text-white" href="/login">
         <FaUser />
