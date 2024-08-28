@@ -1,15 +1,11 @@
-import Image from "next/image";
+import Layout from "@/components/issuer/Sidebar";
 
-export default function Home() {
+export default function page() {
   return (
-    <div>
-      <h1>Home</h1>
-      <Image
-        src="/images/nextjs.png"
-        alt="Next.js Logo"
-        width={200}
-        height={200}
-      />
+    <div className="min-h-screen flex flex-col">
+      <div className="m-auto">
+        <h1 className="text-4xl">Issuer</h1>
+      </div>
     </div>
-  );    
+  );
 }
