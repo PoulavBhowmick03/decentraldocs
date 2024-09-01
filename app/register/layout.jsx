@@ -1,21 +1,16 @@
-"use client"
+// import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from "@/components/theme-provider";
-import UserSidebar from "./components/UserSidebar";
-import '../globals.css';
-import { useAuth } from '@/hooks/useAuth'; // Import the custom hook
+import '../globals.css'
 
 export default function UserLayout({ children }) {
-  const authenticated = useAuth(); // Check if user is authenticated
-
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="system"
+      defaultTheme="Dark"
       enableSystem
       disableTransitionOnChange
     >
       <div className="flex h-screen bg-background">
-        {authenticated ? <UserSidebar /> : null} {/* Conditionally render sidebar */}
         <main className="flex-1 overflow-y-auto p-8">{children}</main>
       </div>
     </ThemeProvider>
