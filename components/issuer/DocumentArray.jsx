@@ -62,7 +62,7 @@ const cardData = [
 
 export const DocumentArray = () => {
   return (
-    <div className="max-w-7xl py-4 pr-10 pl-8">
+    <div className="max-w-6xl py-4 pr-10 pl-8">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-bold">Your Issued Documents</h2>
         <Link href="/issuer/issued" className="text-blue-600 font-semibold">
