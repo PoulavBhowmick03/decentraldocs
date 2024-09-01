@@ -1,15 +1,29 @@
-import Image from "next/image";
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from 'react-hot-toast'
 
-export default function Home() {
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: 'BlockLocker',
+  description: 'Secure document verification using AI and blockchain',
+}
+
+export default function RootLayout({ children }) {
   return (
-    <div>
-      <h1>Home</h1>
-      <Image
-        src="/images/nextjs.png"
-        alt="Next.js Logo"
-        width={200}
-        height={200}
-      />
-    </div>
-  );    
+    <html lang="en">
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </body>
+    </html>
+  )
 }
