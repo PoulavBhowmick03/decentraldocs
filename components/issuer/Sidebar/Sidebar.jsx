@@ -56,7 +56,7 @@ export default function Sidebar({ show, setter }) {
           </Link>
         </div>
         <div className="flex flex-col">
-          <MenuItem name="Home" route="/" icon={<FaHome />} />
+          <MenuItem name="Home" route="/issuer" icon={<FaHome />} />
           <MenuItem name="Search" route="/issuer/search" icon={<FaSearch />} />
           <MenuItem
             name="Issue"
