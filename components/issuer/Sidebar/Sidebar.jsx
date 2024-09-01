@@ -17,12 +17,14 @@ export default function Sidebar({ show, setter }) {
   const router = useRouter();
 
   const className =
-    "bg-sky-400 w-[250px] transition-[margin-left] ease-in-out duration-500 fixed md:static top-0 bottom-0 left-0 z-40";
+    "bg-gray-800 w-[250px] transition-[margin-left] ease-in-out duration-500 fixed md:static top-0 bottom-0 left-0 z-40";
   const appendClass = show ? " ml-0" : " ml-[-250px] md:ml-0";
 
   const MenuItem = ({ icon, name, route }) => {
     const colorClass =
-      router.pathname === route ? "text-white" : "text-white hover:text-white";
+      router.pathname === route
+        ? "bg-gray-700 text-white"
+        : "text-gray-400 hover:bg-gray-700 hover:text-white ";
 
     return (
       <Link
