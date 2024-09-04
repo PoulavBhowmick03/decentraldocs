@@ -1,0 +1,98 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String              @id @default(uuid())
+  email             String              @unique
+  password          String
+  role              UserRole
+  firstName         String
+  lastName          String
+  dateOfBirth       DateTime
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  ownedDocuments    Document[]          @relation("OwnedDocuments")
+  issuer            Issuer?
+  verifier          Verifier?
+}
+
+enum UserRole {
+  INDIVIDUAL
+  ISSUING_AUTHORITY
+  VERIFYING_AUTHORITY
+}
+
+model Issuer {
+  id                String              @id @default(uuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id])
+  organizationName  String
+  organizationType  OrganizationType
+  licenseNumber     String              @unique
+  issuedDocuments   Document[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+enum OrganizationType {
+  SCHOOL
+  UNIVERSITY
+  GOVERNMENT_AGENCY
+  PRIVATE_COMPANY
+  OTHER
+}
+
+model Verifier {
+  id                String              @id @default(uuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id])
+  organizationName  String
+  organizationType  VerifierType
+  licenseNumber     String              @unique
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+enum VerifierType {
+  GOVERNMENT_OFFICE
+  BANK
+  LEGAL_ENTITY
+  EDUCATIONAL_INSTITUTION
+  CORPORATE_ENTITY
+  OTHER
+}
+
+model Document {
+  id                String              @id @default(uuid())
+  type              DocumentType
+  title             String
+  content           String
+  issuedAt          DateTime
+  blockchainHash    String              @unique
+  issuerId          String
+  ownerId           String
+  issuer            Issuer              @relation(fields: [issuerId], references: [id])
+  owner             User                @relation("OwnedDocuments", fields: [ownerId], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+enum DocumentType {
+  BIRTH_CERTIFICATE
+  ACADEMIC_TRANSCRIPT
+  IDENTIFICATION_CARD
+  EXPERIENCE_CERTIFICATE
+  OTHER
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
