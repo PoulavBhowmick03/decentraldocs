@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function UserDashboard() {
   return (
@@ -33,10 +34,12 @@ export default function UserDashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             <Button className="w-full">Upload New Document</Button>
-            <Button className="w-full" variant="outline">Request Verification</Button>
+            <Button className="w-full" variant="outline">
+              Request Verification
+            </Button>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

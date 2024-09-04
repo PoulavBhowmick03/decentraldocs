@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import ConnectWallet from "@/components/ConnectWallet";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
-  const [authenticated, setAuthenticated] = useAuth(); // Check if user is authenticated
+  const [authenticated, setAuthenticated] = useAuth();
   const {
     register,
     handleSubmit,
@@ -19,6 +19,12 @@ export default function Login() {
   } = useForm();
   const router = useRouter();
   const { account, connect, disconnect, switchWallet } = useWallet();
+
+  useEffect(() => {
+    if (authenticated) {
+      router.push('/user');
+    }
+  }, [authenticated, router]);
 
   const onSubmit = async (data) => {
     const submissionData = {
@@ -35,22 +41,21 @@ export default function Login() {
 
       if (response.ok) {
         const { token } = await response.json();
-        // Store the token in localStorage
         localStorage.setItem("token", token);
-        // Update authentication state
-        setAuthenticated(!authenticated);
-        console.log(authenticated);
-        
-        // Redirect user
+        setAuthenticated(true);
+        console.log("Login successful, token:", token);
         router.push("/user");
       } else {
-        // Handle login error
         console.error("Login failed");
       }
     } catch (error) {
       console.error("Error during login:", error);
     }
   };
+
+  if (authenticated) {
+    return null; // Or you could return a loading indicator here
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto mt-10">

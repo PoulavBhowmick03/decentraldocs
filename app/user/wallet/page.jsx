@@ -2,9 +2,12 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import ConnectWallet from '@/components/ConnectWallet'
+import useWallet from '@/hooks/useWallet'
 
 export default function WalletPage() {
   const [isConnected, setIsConnected] = useState(false)
+  const { account, connect, disconnect, switchWallet } = useWallet();
 
   const handleConnect = () => {
     setIsConnected(true)
@@ -27,7 +30,13 @@ export default function WalletPage() {
           ) : (
             <div>
               <p className="mb-4">Connect your wallet to securely store and manage your digital certificates on the blockchain.</p>
-              <Button onClick={handleConnect}>Connect Wallet</Button>
+              <ConnectWallet
+            account={account}
+            connect={connect}
+            disconnect={disconnect}
+            switchWallet={switchWallet}
+          />
+
             </div>
           )}
         </CardContent>

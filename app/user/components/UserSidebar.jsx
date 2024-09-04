@@ -31,6 +31,8 @@ export default function UserSidebar() {
     try {
       await fetch("/api/logout", { method: "POST" });
       // Redirect to the login page or home page after logout
+      setAuthenticated(false);
+      console.log(authenticated);
       router.push("/user/login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -56,10 +58,7 @@ export default function UserSidebar() {
       <div className="absolute bottom-4 w-52">
         <Button variant="outline" className="w-full" onClick={handleLogout}>
           <LogOut
-            onClick={() => {
-              !setAuthenticated;
-              console.log(authenticated);
-            }}
+            onClick={handleLogout}
             className="mr-2 h-4 w-4"
           />
           Logout
