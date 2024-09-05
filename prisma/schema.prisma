@@ -1,10 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model User {
@@ -30,15 +30,15 @@ enum UserRole {
 }
 
 model Issuer {
-  id               String            @id @default(uuid())
-  userId           String            @unique
-  user             User              @relation(fields: [userId], references: [id])
-  organizationName String
-  organizationType OrganizationType?
-  licenseNumber    String?           @unique
-  issuedDocuments  Document[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                String              @id @default(uuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id])
+  organizationName  String
+  organizationType  OrganizationType
+  licenseNumber     String              @unique
+  issuedDocuments   Document[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
 enum OrganizationType {
@@ -50,14 +50,14 @@ enum OrganizationType {
 }
 
 model Verifier {
-  id               String        @id @default(uuid())
-  userId           String        @unique
-  user             User          @relation(fields: [userId], references: [id])
-  organizationName String
-  organizationType VerifierType?
-  licenseNumber    String?       @unique
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id                String              @id @default(uuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id])
+  organizationName  String
+  organizationType  VerifierType
+  licenseNumber     String              @unique
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
 enum VerifierType {
@@ -70,18 +70,18 @@ enum VerifierType {
 }
 
 model Document {
-  id             String       @id @default(uuid())
-  type           DocumentType
-  title          String
-  content        String
-  issuedAt       DateTime
-  blockchainHash String       @unique
-  issuerId       String
-  ownerId        String
-  issuer         Issuer       @relation(fields: [issuerId], references: [id])
-  owner          User         @relation("OwnedDocuments", fields: [ownerId], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                String              @id @default(uuid())
+  type              DocumentType
+  title             String
+  content           String
+  issuedAt          DateTime
+  blockchainHash    String              @unique
+  issuerId          String
+  ownerId           String
+  issuer            Issuer              @relation(fields: [issuerId], references: [id])
+  owner             User                @relation("OwnedDocuments", fields: [ownerId], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
 enum DocumentType {
