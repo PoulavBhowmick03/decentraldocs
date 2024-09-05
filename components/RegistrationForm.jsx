@@ -73,7 +73,7 @@ export default function RegistrationForm({ onSubmit }) {
         </form>
         <div className="text-center mt-4">
           <Link href="/user/login">
-            <a className="text-primary">Already have an account? Login</a>
+            <div className="text-primary">Already have an account? Login</div>
           </Link>
         </div>
       </CardContent>

@@ -11,7 +11,7 @@ export async function POST(request) {
       return new Response(JSON.stringify({ message: "Email and walletAddress are required" }), { status: 400 });
     }
 
-    // Find user by email
+    // Find user by Wallet Address
     const user = await prisma.user.findUnique({ where: { walletAddress } });
     if (!user) {
       return new Response(JSON.stringify({ message: "Invalid credentials" }), { status: 400 });

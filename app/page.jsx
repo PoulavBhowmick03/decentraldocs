@@ -13,10 +13,13 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import Navigation from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
+  const authenticated = useAuth();
   const router = useRouter();
   const handleSelection = (accountType) => {
     router.push(`/register/${accountType}`);
@@ -27,10 +30,11 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="Dark"
           enableSystem
           disableTransitionOnChange
         >
+          <Navigation />
           <div className="container mx-auto mt-10 p-4">
             <h1 className="text-3xl font-bold mb-6 text-center">
               Choose Account Type

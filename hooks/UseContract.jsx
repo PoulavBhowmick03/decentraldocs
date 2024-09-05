@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { ABI } from '@/utils/ethereum';
+import { DigitalLocker } from '@/utils/ethereum';
 
 const useContract = () => {
   const [contract, setContract] = useState(null);
@@ -11,7 +11,7 @@ const useContract = () => {
         try {
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           const signer = provider.getSigner();
-          const contractInstance = new ethers.Contract(ABI.address, ABI.abi, signer);
+          const contractInstance = new ethers.Contract(DigitalLocker.address, DigitalLocker.abi, signer);
           
           console.log("Contract instance:", contractInstance);
           
