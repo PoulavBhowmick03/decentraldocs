@@ -8,7 +8,7 @@ import ConnectWallet from "./ConnectWallet";
 import useWallet from "@/hooks/useWallet";
 import Link from "next/link";
 
-export default function RegistrationForm({ onSubmit }) {
+export default function IssuerRegistrationForm({ onSubmit }) {
   const {
     register,
     handleSubmit,
@@ -33,31 +33,18 @@ export default function RegistrationForm({ onSubmit }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="organizationName">Organization Name</Label>
-            <Input
-              id="organizationName"
-              {...register("organizationName", {
-                required: "Organization name is required",
-              })}
-            />
-            {errors.organizationName && (
-              <p className="text-red-500 text-sm">
-                {errors.organizationName.message}
-              </p>
-            )}
-          </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              {...register("email", { required: "Email is required" })}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email.message}</p>
-            )}
+          <select
+            value={settings.language}
+            onChange={handleLanguageChange}
+            className="w-full p-2 border rounded"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+          </select>
           </div>
 
           <ConnectWallet

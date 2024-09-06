@@ -2,11 +2,38 @@
 pragma solidity ^0.8.0;
 
 contract DocumentVerification {
-    enum UserRole { INDIVIDUAL, ISSUING_AUTHORITY, VERIFYING_AUTHORITY }
-    enum OrganizationType { SCHOOL, UNIVERSITY, GOVERNMENT_AGENCY, PRIVATE_COMPANY, OTHER }
-    enum VerifierType { GOVERNMENT_OFFICE, BANK, LEGAL_ENTITY, EDUCATIONAL_INSTITUTION, CORPORATE_ENTITY, OTHER }
-    enum DocumentType { BIRTH_CERTIFICATE, ACADEMIC_TRANSCRIPT, IDENTIFICATION_CARD, EXPERIENCE_CERTIFICATE, OTHER }
-    enum VerificationStatus { PENDING, VERIFIED, REJECTED }
+    enum UserRole {
+        INDIVIDUAL,
+        ISSUING_AUTHORITY,
+        VERIFYING_AUTHORITY
+    }
+    enum OrganizationType {
+        SCHOOL,
+        UNIVERSITY,
+        GOVERNMENT_AGENCY,
+        PRIVATE_COMPANY,
+        OTHER
+    }
+    enum VerifierType {
+        GOVERNMENT_OFFICE,
+        BANK,
+        LEGAL_ENTITY,
+        EDUCATIONAL_INSTITUTION,
+        CORPORATE_ENTITY,
+        OTHER
+    }
+    enum DocumentType {
+        BIRTH_CERTIFICATE,
+        ACADEMIC_TRANSCRIPT,
+        IDENTIFICATION_CARD,
+        EXPERIENCE_CERTIFICATE,
+        OTHER
+    }
+    enum VerificationStatus {
+        PENDING,
+        VERIFIED,
+        REJECTED
+    }
 
     struct User {
         address walletAddress;
@@ -16,19 +43,18 @@ contract DocumentVerification {
         string lastName;
         string organizationName;
         uint256[] ownedDocuments;
+        bool profileCompleted;
     }
 
     struct Issuer {
         address walletAddress;
         OrganizationType organizationType;
-        string licenseNumber;
         uint256[] issuedDocuments;
     }
 
     struct Verifier {
         address walletAddress;
         VerifierType organizationType;
-        string licenseNumber;
     }
 
     struct Document {
@@ -47,76 +73,131 @@ contract DocumentVerification {
     mapping(address => Verifier) public verifiers;
     mapping(uint256 => Document) public documents;
     uint256 public documentCount = 0;
+    uint256 public userCount = 0;
+    uint256 public issuerCount = 0;
+    uint256 public verifierCount = 0;
 
     event UserRegistered(address indexed user, UserRole role);
-    event IssuerRegistered(address indexed issuer, OrganizationType organizationType, string licenseNumber);
-    event VerifierRegistered(address indexed verifier, VerifierType organizationType, string licenseNumber);
-    event DocumentIssued(uint256 indexed documentId, address indexed issuer, address indexed owner);
-    event DocumentVerified(uint256 indexed documentId, VerificationStatus status);
+    event UserProfileUpdated(address indexed user);
+
+    event IssuerRegistered(
+        address indexed issuer,
+        OrganizationType organizationType
+    );
+    event VerifierRegistered(
+        address indexed verifier,
+        VerifierType organizationType
+    );
+    event DocumentIssued(
+        uint256 indexed documentId,
+        address indexed issuer,
+        address indexed owner
+    );
+    event DocumentVerified(
+        uint256 indexed documentId,
+        VerificationStatus status
+    );
+
+    modifier onlyRegisteredUser() {
+        require(
+            users[msg.sender].walletAddress != address(0),
+            "User not registered"
+        );
+        _;
+    }
 
     modifier onlyIssuer() {
-        require(users[msg.sender].role == UserRole.ISSUING_AUTHORITY, "Only issuing authorities can perform this action");
+        require(
+            users[msg.sender].role == UserRole.ISSUING_AUTHORITY,
+            "Only issuing authorities can perform this action"
+        );
         _;
     }
 
     modifier onlyVerifier() {
-        require(users[msg.sender].role == UserRole.VERIFYING_AUTHORITY, "Only verifying authorities can perform this action");
+        require(
+            users[msg.sender].role == UserRole.VERIFYING_AUTHORITY,
+            "Only verifying authorities can perform this action"
+        );
         _;
     }
 
     function registerUser(
         string memory _email,
         UserRole _role,
-        string memory _firstName,
-        string memory _lastName,
         string memory _organizationName
-    ) public {
-        require(users[msg.sender].walletAddress == address(0), "User already registered");
+    ) external {
+        userCount++;
+        require(
+            users[msg.sender].walletAddress == address(0),
+            "User already registered"
+        );
 
         users[msg.sender] = User({
             walletAddress: msg.sender,
             email: _email,
             role: _role,
-            firstName: _firstName,
-            lastName: _lastName,
             organizationName: _organizationName,
-            ownedDocuments: new uint256[](0)
+            firstName: "",
+            lastName: "",
+            ownedDocuments: new uint256[](0),
+            profileCompleted: false
         });
 
         emit UserRegistered(msg.sender, _role);
     }
 
+    function updateUserProfile(
+        string memory _firstName,
+        string memory _lastName
+    ) external onlyRegisteredUser {
+        User storage user = users[msg.sender];
+        user.firstName = _firstName;
+        user.lastName = _lastName;
+
+        user.profileCompleted = true;
+
+        if (user.ownedDocuments.length > 1) user.profileCompleted = false;
+        emit UserProfileUpdated(msg.sender);
+    }
+
     function registerIssuer(
-        OrganizationType _organizationType,
-        string memory _licenseNumber
+        OrganizationType _organizationType
     ) public {
-        require(issuers[msg.sender].walletAddress == address(0), "Issuer already registered");
-        require(users[msg.sender].role == UserRole.ISSUING_AUTHORITY, "User is not an issuing authority");
+        require(
+            issuers[msg.sender].walletAddress == address(0),
+            "Issuer already registered"
+        );
+        require(
+            users[msg.sender].role == UserRole.ISSUING_AUTHORITY,
+            "User is not an issuing authority"
+        );
 
         issuers[msg.sender] = Issuer({
             walletAddress: msg.sender,
             organizationType: _organizationType,
-            licenseNumber: _licenseNumber,
             issuedDocuments: new uint256[](0)
         });
 
-        emit IssuerRegistered(msg.sender, _organizationType, _licenseNumber);
+        emit IssuerRegistered(msg.sender, _organizationType);
     }
 
-    function registerVerifier(
-        VerifierType _organizationType,
-        string memory _licenseNumber
-    ) public {
-        require(verifiers[msg.sender].walletAddress == address(0), "Verifier already registered");
-        require(users[msg.sender].role == UserRole.VERIFYING_AUTHORITY, "User is not a verifying authority");
+    function registerVerifier(VerifierType _organizationType) public {
+        require(
+            verifiers[msg.sender].walletAddress == address(0),
+            "Verifier already registered"
+        );
+        require(
+            users[msg.sender].role == UserRole.VERIFYING_AUTHORITY,
+            "User is not a verifying authority"
+        );
 
         verifiers[msg.sender] = Verifier({
             walletAddress: msg.sender,
-            organizationType: _organizationType,
-            licenseNumber: _licenseNumber
+            organizationType: _organizationType
         });
 
-        emit VerifierRegistered(msg.sender, _organizationType, _licenseNumber);
+        emit VerifierRegistered(msg.sender, _organizationType);
     }
 
     function issueDocument(
@@ -145,7 +226,10 @@ contract DocumentVerification {
     }
 
     function verifyDocument(uint256 _documentId) public onlyVerifier {
-        require(documents[_documentId].owner != address(0), "Document does not exist");
+        require(
+            documents[_documentId].owner != address(0),
+            "Document does not exist"
+        );
         documents[_documentId].status = VerificationStatus.VERIFIED;
 
         emit DocumentVerified(_documentId, VerificationStatus.VERIFIED);

@@ -1,10 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model User {
@@ -14,59 +14,36 @@ model User {
   role             UserRole
   firstName        String?
   lastName         String?
-  organizationName String?
   dateOfBirth      DateTime?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
+  organizationName String?
   ownedDocuments   Document[] @relation("OwnedDocuments")
   issuer           Issuer?
   verifier         Verifier?
 }
 
-enum UserRole {
-  INDIVIDUAL
-  ISSUING_AUTHORITY
-  VERIFYING_AUTHORITY
-}
-
 model Issuer {
   id               String            @id @default(uuid())
   userId           String            @unique
-  user             User              @relation(fields: [userId], references: [id])
   organizationName String
   organizationType OrganizationType?
   licenseNumber    String?           @unique
-  issuedDocuments  Document[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-}
-
-enum OrganizationType {
-  SCHOOL
-  UNIVERSITY
-  GOVERNMENT_AGENCY
-  PRIVATE_COMPANY
-  OTHER
+  issuedDocuments  Document[]
+  user             User              @relation(fields: [userId], references: [id])
 }
 
 model Verifier {
   id               String        @id @default(uuid())
   userId           String        @unique
-  user             User          @relation(fields: [userId], references: [id])
   organizationName String
   organizationType VerifierType?
   licenseNumber    String?       @unique
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-}
-
-enum VerifierType {
-  GOVERNMENT_OFFICE
-  BANK
-  LEGAL_ENTITY
-  EDUCATIONAL_INSTITUTION
-  CORPORATE_ENTITY
-  OTHER
+  user             User          @relation(fields: [userId], references: [id])
 }
 
 model Document {
@@ -78,10 +55,33 @@ model Document {
   blockchainHash String       @unique
   issuerId       String
   ownerId        String
-  issuer         Issuer       @relation(fields: [issuerId], references: [id])
-  owner          User         @relation("OwnedDocuments", fields: [ownerId], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  issuer         Issuer       @relation(fields: [issuerId], references: [id])
+  owner          User         @relation("OwnedDocuments", fields: [ownerId], references: [id])
+}
+
+enum UserRole {
+  INDIVIDUAL
+  ISSUING_AUTHORITY
+  VERIFYING_AUTHORITY
+}
+
+enum OrganizationType {
+  SCHOOL
+  UNIVERSITY
+  GOVERNMENT_AGENCY
+  PRIVATE_COMPANY
+  OTHER
+}
+
+enum VerifierType {
+  GOVERNMENT_OFFICE
+  BANK
+  LEGAL_ENTITY
+  EDUCATIONAL_INSTITUTION
+  CORPORATE_ENTITY
+  OTHER
 }
 
 enum DocumentType {
