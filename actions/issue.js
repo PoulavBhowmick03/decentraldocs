@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 
 export async function issueDocument(data, res) {
   try {
-    const {  blockchainHash, ownerId, issuerId, verifier, verifierId } = data;
+    const {  blockchainHash, ownerId, issuerId, verifierId } = data;
     const {  description, name } = res
 
     const newDoc = await prisma.document.create({
@@ -18,7 +18,7 @@ export async function issueDocument(data, res) {
         ownerId,
         issuerId,
         verifierId,
-        verifier,
+        // verifier,
         // certificate_type
       }
     });
