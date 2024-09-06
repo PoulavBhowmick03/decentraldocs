@@ -1,42 +1,52 @@
-import prisma from '@/utils/prisma'
+import prisma from "@/utils/prisma";
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' })
-  }
-
+export async function POST(request) {
   try {
-    const { email, organizationName, walletAddress } = req.body
+    const { walletAddress, organizationType } = await request.json();
 
-    // Check if verifier already exists
-    const existingVerifier = await prisma.user.findUnique({ where: { email } })
-    if (existingVerifier) {
-      return res.status(400).json({ message: 'Verifier already exists' })
+    // Validate input
+    if (!walletAddress || organizationType === undefined) {
+      return new Response(
+        JSON.stringify({
+          message: "Wallet Address and Organization Type are required",
+        }),
+        { status: 400 }
+      );
     }
 
-    // Create new verifier in a transaction
-    const result = await prisma.$transaction(async (prisma) => {
-      const newUser = await prisma.user.create({
-        data: {
-          email,
-          walletAddress,
-          role: 'VERIFYING_AUTHORITY'
-        }
-      })
+    // Check if issuer already exists in the issuer table
+    const existingVerifier = await prisma.verifier.findUnique({
+      where: { walletAddress },
+    });
 
-      const newVerifier = await prisma.verifier.create({
-        data: {
-          userId: newUser.id,
-          organizationName
-        }
-      })
+    if (existingVerifier) {
+      return new Response(
+        JSON.stringify({ message: "Verifier already exists" }),
+        { status: 400 }
+      );
+    }
 
-      return { user: newUser, verifier: newVerifier }
-    })
+    // Create new verifier
+    const newVerifier = await prisma.verifier.create({
+      data: {
+        walletAddress,
+        organizationType,
+      },
+    });
 
-    res.status(201).json({ message: 'Verifier registered successfully', userId: result.user.id, verifierId: result.verifier.id })
+    // Return success response
+    return new Response(
+      JSON.stringify({
+        message: "Issuer registered successfully",
+        issuerId: newVerifier.id,
+      }),
+      { status: 201 }
+    );
   } catch (error) {
-    console.error('Registration error:', error)
-    res.status(500).json({ message: 'Internal server error' })
+    console.error("Registration error:", error);
+    return new Response(
+      JSON.stringify({ message: "Internal server error" }),
+      { status: 500 }
+    );
   }
 }
