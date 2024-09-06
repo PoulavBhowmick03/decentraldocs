@@ -1,42 +1,46 @@
-import prisma from '@/utils/prisma'
+import prisma from "@/utils/prisma";
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' })
-  }
-
+export async function POST(request) {
   try {
-    const { email, organizationName, walletAddress } = req.body
+    const { email, organizationName, walletAddress } = await request.json();
 
+    if (!email || !walletAddress || !organizationName) {
+      return new Response(
+        JSON.stringify({
+          message: "Email, Wallet Address, and Organization Name are required",
+        }),
+        { status: 400 }
+      );
+    }
     // Check if issuer already exists
-    const existingIssuer = await prisma.user.findUnique({ where: { email } })
+    const existingIssuer = await prisma.user.findUnique({ where: { email } });
     if (existingIssuer) {
-      return res.status(400).json({ message: 'Issuer already exists' })
+      return new Response(JSON.stringify({ message: "User already exists" }), {
+        status: 400,
+      });
     }
 
-    // Create new issuer in a transaction
-    const result = await prisma.$transaction(async (prisma) => {
-      const newUser = await prisma.user.create({
-        data: {
-          email,
-          walletAddress,
-          role: 'ISSUING_AUTHORITY'
-        }
-      })
+    // Create new issuer
+    const newIssuer = await prisma.issuer.create({
+      data: {
+        email,
+        walletAddress,
+        organizationName,
+        role: "ISSUING_AUTHORITY",
+      },
+    });
 
-      const newIssuer = await prisma.issuer.create({
-        data: {
-          userId: newUser.id,
-          organizationName
-        }
-      })
-
-      return { user: newUser, issuer: newIssuer }
-    })
-
-    res.status(201).json({ message: 'Issuer registered successfully', userId: result.user.id, issuerId: result.issuer.id })
+    return new Response(
+      JSON.stringify({
+        message: "User registered successfully",
+        userId: newIssuer.id,
+      }),
+      { status: 201 }
+    );
   } catch (error) {
-    console.error('Registration error:', error)
-    res.status(500).json({ message: 'Internal server error' })
+    console.error("Registration error:", error);
+    return new Response(JSON.stringify({ message: "Internal server error" }), {
+      status: 500,
+    });
   }
 }

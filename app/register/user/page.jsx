@@ -22,31 +22,25 @@ export default function UserRegistration() {
     }
 
     try {
-      const { email, organizationName } = data;  // Extract email and org name directly
+      const { email, organizationName } = data;
       const submissionData = {
         ...data,
-        walletAddress: account, 
+        walletAddress: account,
       };
 
-      // Interact with the contract to register the user
-      const tx = await contract.registerUser(
-        email,
-        1,  // Replace with correct user type if necessary
-        organizationName
-      );
+      const tx = await contract.registerUser(email, 1, organizationName);
       console.log("Transaction hash:", tx.hash);
       await tx.wait();
       console.log("User registered on blockchain");
 
-      // Now register the user in your backend
       const response = await fetch("/api/register/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submissionData),  // Send submission data to API
+        body: JSON.stringify(submissionData),
       });
 
       if (response.ok) {
-        router.push("/user/login");  // Redirect user to login on success
+        router.push("/user");
       } else {
         console.error("Registration failed on backend");
       }
