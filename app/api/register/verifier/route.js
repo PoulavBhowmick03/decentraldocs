@@ -44,9 +44,8 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error("Registration error:", error);
-    return new Response(
-      JSON.stringify({ message: "Internal server error" }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ message: "Internal server error" }), {
+      status: 500,
+    });
   }
 }
