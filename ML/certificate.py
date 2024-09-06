@@ -28,7 +28,7 @@ def parse_text(text):
     }
     return data
 
-@app.route('/process_image', methods=['POST'])
+@app.route('/abc', methods=['POST'])
 def process_image():
     if 'image' not in request.files:
         return jsonify({"error": "No image file provided"}), 400
