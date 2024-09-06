@@ -44,21 +44,24 @@ model Verifier {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   user             User          @relation(fields: [userId], references: [id])
+  Document         Document[]
 }
 
 model Document {
   id             String       @id @default(uuid())
-  type           DocumentType
-  title          String
-  content        String
-  issuedAt       DateTime
+  type           DocumentType?
+  name          String
+  description        String
+        //  DateTime
   blockchainHash String       @unique
   issuerId       String
   ownerId        String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  issuedAt      DateTime     @default(now())
+  updatedAt      DateTime?     @updatedAt
   issuer         Issuer       @relation(fields: [issuerId], references: [id])
   owner          User         @relation("OwnedDocuments", fields: [ownerId], references: [id])
+  verifier       Verifier?    @relation(fields: [verifierId], references: [id])
+  verifierId     String?
 }
 
 enum UserRole {
