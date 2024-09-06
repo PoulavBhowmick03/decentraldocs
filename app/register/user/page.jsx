@@ -24,8 +24,9 @@ export default function UserRegistration() {
     try {
       const { email, organizationName } = data;
       const submissionData = {
-        ...data,
+        email, // Ensuring correct fields
         walletAddress: account,
+        organizationName,
       };
 
       const tx = await contract.registerUser(email, 1, organizationName);
@@ -36,13 +37,14 @@ export default function UserRegistration() {
       const response = await fetch("/api/register/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submissionData),
+        body: JSON.stringify(submissionData), // Sending correctly formatted data
       });
 
       if (response.ok) {
         router.push("/user");
       } else {
-        console.error("Registration failed on backend");
+        const errorData = await response.json();
+        console.error("Registration failed on backend:", errorData.message);
       }
     } catch (error) {
       console.error("Error during registration:", error);

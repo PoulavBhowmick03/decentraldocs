@@ -1,52 +1,46 @@
-import prisma from "@/utils/prisma";
-
 export async function POST(request) {
   try {
-    const { walletAddress, organizationType } = await request.json();
+    const { email, walletAddress, organizationName } = await request.json();
+    console.log("Received data:", { email, walletAddress, organizationName });  // Log incoming data
 
-    // Validate input
-    if (!walletAddress || organizationType === undefined) {
+    if (!email || !walletAddress || !organizationName) {
       return new Response(
         JSON.stringify({
-          message: "Wallet Address and Organization Type are required",
+          message: "Email, Wallet Address, and Organization Name are required",
         }),
         { status: 400 }
       );
     }
 
-    // Check if issuer already exists in the issuer table
-    const existingIssuer = await prisma.issuer.findUnique({
-      where: { walletAddress },
-    });
-
-    if (existingIssuer) {
-      return new Response(
-        JSON.stringify({ message: "Issuer already exists" }),
-        { status: 400 }
-      );
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return new Response(JSON.stringify({ message: "User already exists" }), {
+        status: 400,
+      });
     }
 
-    // Create new issuer
-    const newIssuer = await prisma.issuer.create({
+    // Create new user
+    const newUser = await prisma.user.create({
       data: {
+        email,
         walletAddress,
-        organizationType,
+        organizationName,
+        role: "INDIVIDUAL",
       },
     });
 
-    // Return success response
     return new Response(
       JSON.stringify({
-        message: "Issuer registered successfully",
-        issuerId: newIssuer.id,
+        message: "User registered successfully",
+        userId: newUser.id,
       }),
       { status: 201 }
     );
   } catch (error) {
     console.error("Registration error:", error);
-    return new Response(
-      JSON.stringify({ message: "Internal server error" }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ message: "Internal server error" }), {
+      status: 500,
+    });
   }
 }
