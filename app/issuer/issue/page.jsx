@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { issueDocument } from "@/actions/issue";
-// import accou
 import useWallet from "@/hooks/useWallet";
 import {
   Table,
@@ -23,120 +22,87 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MdAccountBalance } from "react-icons/md";
 
 const DocumentsPage = () => {
   const { account } = useWallet();
-  const [documents, setDocuments] = useState([
-    {
-      id: 1,
-      name: "Birth Certificate",
-      issueDate: "2023-01-15",
-      status: "Verified",
-    },
-    {
-      id: 2,
-      name: "Academic Transcript",
-      issueDate: "2023-05-20",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      name: "Work Experience",
-      issueDate: "2023-08-10",
-      status: "Verified",
-    },
-  ]);
+  const [documents, setDocuments] = useState([]);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [documentName1, setDocumentName1] = useState("");
-  const [documentName0, setDocumentName0] = useState("");
+  const [userWalletAddress, setUserWalletAddress] = useState("");
+  const [verifierWalletAddress, setVerifierWalletAddress] = useState("");
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
-  const [ipfs, setIpfs] = useState(null);
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) {
+    if (!file || !userWalletAddress || !verifierWalletAddress) {
       setUploadStatus({
         type: "error",
-        message: "Please select a file to upload.",
+        message: "Please fill all fields and select a file to upload.",
       });
       return;
     }
   
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
+    formData.append("user_wallet_address", userWalletAddress);
+    formData.append("verifier_wallet_address", verifierWalletAddress);
+    formData.append("issuer_wallet_address", account);
   
     try {
-      const response = await axios.post("http://localhost:5000/abc", formData, {
+      // Step 1: Upload to Flask server
+      const flaskResponse = await axios.post("http://localhost:5000/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        withCredentials: false,
       });
   
-      console.log("Server response:", response.data);
+      console.log("Flask server response:", flaskResponse.data);
   
-
-      const res = await axios.post(
-        "https://api.pinata.cloud/pinning/pinFileToIPFS",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            pinata_api_key: process.env.PINATA_KEY,
-            pinata_secret_api_key: process.env.PINATA_SECRET,
-          },
-        }
-      );
-
-      const ipfsHash = response.data.IpfsHash;
-      setIpfs(ipfsHash);
-
-      await issueDocument(
-        {
-          blockchainHash: ipfsHash,
-          ownerId: documentName0,
+      if (flaskResponse.data.success) {
+        // Step 2: Issue document using Next.js server action
+        const issueData = {
+          blockchainHash: flaskResponse.data.ipfsHash,
+          ownerId: userWalletAddress,
           issuerId: account,
-          verifierId: documentName1,
-          // verifier: documentName1,
-          description: "Document Description",
-        },
-        response
-      );
-
-      const newDocument = {
-        id: documents.length + 1,
-        name: documentName0 || file.name,
-        issueDate: new Date().toISOString().split("T")[0],
-        status: "Pending",
-      };
-
-      setDocuments([...documents, newDocument]);
-      setUploadStatus({
-        type: "success",
-        message: "Document uploaded successfully!",
-      });
-      setIsUploadDialogOpen(false);
-      setDocumentName0("");
-      setFile(null);
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error("Server responded with error:", error.response.data);
-        console.error("Status code:", error.response.status);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error("No response received:", error.request);
+          verifierId: verifierWalletAddress,
+          description: "Document uploaded via web interface",
+          name: file.name,
+        };
+  
+        console.log("Issuing document with data:", issueData);
+  
+        const issueResponse = await issueDocument(issueData);
+  
+        console.log("Issue document response:", issueResponse);
+  
+        if (issueResponse.success) {
+          const newDocument = {
+            id: issueResponse.document.id,
+            name: issueResponse.document.name,
+            issueDate: new Date(issueResponse.document.issuedAt).toISOString().split("T")[0],
+            status: "Issued",
+          };
+  
+          setDocuments([...documents, newDocument]);
+          setUploadStatus({
+            type: "success",
+            message: "Document uploaded and issued successfully!",
+          });
+          setIsUploadDialogOpen(false);
+          setUserWalletAddress("");
+          setVerifierWalletAddress("");
+          setFile(null);
+        } else {
+          throw new Error(issueResponse.message || "Failed to issue document");
+        }
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error("Error setting up request:", error.message);
+        throw new Error(flaskResponse.data.message || "Upload failed");
       }
+    } catch (error) {
+      console.error("Error in handleUpload:", error);
       setUploadStatus({
         type: "error",
-        message: "Error uploading document. Please try again.",
+        message: error.message || "Error uploading document. Please try again.",
       });
     }
   };
@@ -155,20 +121,20 @@ const DocumentsPage = () => {
             </DialogHeader>
             <form onSubmit={handleUpload} className="space-y-4">
               <div>
-                <Label htmlFor="documentName">Wallet Address</Label>
+                <Label htmlFor="userWalletAddress">User Wallet Address</Label>
                 <Input
-                  id="documentName"
-                  value={documentName0}
-                  onChange={(e) => setDocumentName0(e.target.value)}
+                  id="userWalletAddress"
+                  value={userWalletAddress}
+                  onChange={(e) => setUserWalletAddress(e.target.value)}
                   placeholder="Enter User Wallet Address"
                 />
               </div>
               <div>
-                <Label htmlFor="documentName">Wallet Address</Label>
+                <Label htmlFor="verifierWalletAddress">Verifier Wallet Address</Label>
                 <Input
-                  id="documentName"
-                  value={documentName1}
-                  onChange={(e) => setDocumentName1(e.target.value)}
+                  id="verifierWalletAddress"
+                  value={verifierWalletAddress}
+                  onChange={(e) => setVerifierWalletAddress(e.target.value)}
                   placeholder="Enter Verifier Wallet Address"
                 />
               </div>
@@ -200,7 +166,7 @@ const DocumentsPage = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Wallet Address</TableHead>
+            <TableHead>Document Name</TableHead>
             <TableHead>Issue Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
