@@ -1,7 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { verifyDocument } from "@/actions/verify";
 import { fetchIssuedDocuments } from "@/actions/fetchDocuments";
 import useWallet from "@/hooks/useWallet";
@@ -14,24 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 const DocumentsPage = () => {
   const { account } = useWallet();
   const [documents, setDocuments] = useState([]);
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [userWalletAddress, setUserWalletAddress] = useState("");
-  const [verifierWalletAddress, setVerifierWalletAddress] = useState("");
-  const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState({});
@@ -68,23 +54,21 @@ const DocumentsPage = () => {
     try {
       setVerificationStatus((prev) => ({ ...prev, [doc.id]: "loading" }));
 
-      const result = await verifyDocument(doc.id, account);
+      const result = await verifyDocument(doc.id);
 
       if (result.success) {
-        if (result.verified) {
-          setVerificationStatus((prev) => ({ ...prev, [doc.id]: "verified" }));
-        } else {
-          setVerificationStatus((prev) => ({ ...prev, [doc.id]: "anomaly" }));
-        }
-        // Refresh the documents list
-        await loadDocuments();
+        setVerificationStatus((prev) => ({ ...prev, [doc.id]: "verified" }));
+        // Update the local state to reflect the change
+        setDocuments((prevDocs) =>
+          prevDocs.map((d) =>
+            d.id === doc.id ? { ...d, isVerified: true } : d
+          )
+        );
       } else {
         setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
-        console.error("Verification failed:", result.message);
-        // You might want to show this error message to the user
         setUploadStatus({
           type: "error",
-          message: result.message,
+          message: result.message || "Verification failed",
         });
       }
     } catch (error) {
@@ -96,51 +80,11 @@ const DocumentsPage = () => {
       });
     }
   };
+
   return (
     <div className="space-y-6 p-6 bg-transparent text-black">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">My Issued Documents</h1>
-        <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Upload New Document</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Upload New Document</DialogTitle>
-            </DialogHeader>
-            <form className="space-y-4">
-              <div>
-                <Label htmlFor="userWalletAddress">User Wallet Address</Label>
-                <Input
-                  id="userWalletAddress"
-                  value={userWalletAddress}
-                  onChange={(e) => setUserWalletAddress(e.target.value)}
-                  placeholder="Enter User Wallet Address"
-                />
-              </div>
-              <div>
-                <Label htmlFor="verifierWalletAddress">
-                  Verifier Wallet Address
-                </Label>
-                <Input
-                  id="verifierWalletAddress"
-                  value={verifierWalletAddress}
-                  onChange={(e) => setVerifierWalletAddress(e.target.value)}
-                  placeholder="Enter Verifier Wallet Address"
-                />
-              </div>
-              <div>
-                <Label htmlFor="documentFile">Upload File</Label>
-                <Input
-                  id="documentFile"
-                  type="file"
-                  onChange={(e) => setFile(e.target.files[0])}
-                />
-              </div>
-              <Button type="submit">Upload</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {uploadStatus && (
@@ -176,11 +120,7 @@ const DocumentsPage = () => {
                   {new Date(doc.issueDate).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  {verificationStatus[doc.id] === "verified"
-                    ? "Verified"
-                    : verificationStatus[doc.id] === "anomaly"
-                    ? "Anomaly Detected"
-                    : doc.status}
+                  {doc.isVerified ? "Verified" : "Not Verified"}
                 </TableCell>
                 <TableCell>{doc.ownerAddress}</TableCell>
                 <TableCell>{doc.verifierAddress}</TableCell>
@@ -192,16 +132,19 @@ const DocumentsPage = () => {
                     onClick={() => handleVerify(doc)}
                     disabled={
                       verificationStatus[doc.id] === "loading" ||
-                      verificationStatus[doc.id] === "verified"
+                      doc.isVerified
                     }
                   >
-                    {verificationStatus[doc.id] === "loading"
-                      ? "Verifying..."
-                      : verificationStatus[doc.id] === "verified"
-                      ? "Verified"
-                      : verificationStatus[doc.id] === "anomaly"
-                      ? "Anomaly Detected"
-                      : "Verify"}
+                    {verificationStatus[doc.id] === "loading" ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Verifying
+                      </>
+                    ) : doc.isVerified ? (
+                      "Verified"
+                    ) : (
+                      "Verify"
+                    )}
                   </Button>
                 </TableCell>
               </TableRow>
