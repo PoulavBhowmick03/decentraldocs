@@ -11,7 +11,7 @@ def load_data(file_path):
 
 def preprocess_data(data):
     numeric_features = data.select_dtypes(include=['int64', 'float64']).columns
-    categorical_features = data.select_dtypes(include=['object', 'int64', 'float64']).columns
+    categorical_features = data.select_dtypes(include=['object']).columns
     datetime_features = data.select_dtypes(include=['datetime64']).columns
 
     # Convert categorical features to string type
@@ -98,5 +98,6 @@ def main():
     # Save model
     import joblib
     joblib.dump(clf, "certidicate.pkl")
+    joblib.dump(feature_names, "feature_names.pkl")
 if __name__ == "__main__":
     main()
