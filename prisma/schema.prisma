@@ -50,16 +50,16 @@ model Verifier {
 model Document {
   id             String       @id @default(uuid())
   type           DocumentType?
-  name          String
-  description        String
+  name          String?
+  description        String?
         //  DateTime
-  blockchainHash String       @unique
-  issuerId       String
-  ownerId        String
-  issuedAt      DateTime     @default(now())
+  blockchainHash String?       @unique
+  issuerId       String?
+  ownerId        String?
+  issuedAt      DateTime?     @default(now())
   updatedAt      DateTime?     @updatedAt
-  issuer         Issuer       @relation(fields: [issuerId], references: [id])
-  owner          User         @relation("OwnedDocuments", fields: [ownerId], references: [id])
+  issuer         Issuer?       @relation(fields: [issuerId], references: [id])
+  owner          User?         @relation("OwnedDocuments", fields: [ownerId], references: [id])
   verifier       Verifier?    @relation(fields: [verifierId], references: [id])
   verifierId     String?
 }
