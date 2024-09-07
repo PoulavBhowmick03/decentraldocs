@@ -52,6 +52,7 @@ const DocumentsPage = () => {
   const [documentName0, setDocumentName0] = useState("");
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [ipfs, setIpfs] = useState(null);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -73,9 +74,24 @@ const DocumentsPage = () => {
         },
       });
 
+      const res = await axios.post(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            pinata_api_key: process.env.PINATA_KEY,
+            pinata_secret_api_key: process.env.PINATA_SECRET,
+          },
+        }
+      );
+
+      const ipfsHash = response.data.IpfsHash;
+      setIpfs(ipfsHash);
+
       await issueDocument(
         {
-          blockchainHash: response.data.hash,
+          blockchainHash: ipfsHash,
           ownerId: documentName0,
           issuerId: account,
           verifierId: documentName1,
