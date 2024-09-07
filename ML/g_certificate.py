@@ -17,9 +17,9 @@ def generate_certificate_data(num_entries=50):
         description = fake.sentence(nb_words=10)
         
         certificate_data.append({
-            'Name': name,
-            'Certificate Type': certificate_type,
-            'Description': description
+            'name': name,
+            'certificate_type': certificate_type,
+            'description': description
         })
     
     return certificate_data
@@ -49,9 +49,9 @@ def generate_anomalous_certificate_data(num_entries=10):
             description = fake.sentence(nb_words=10)
         
         anomalous_data.append({
-            'Name': name,
-            'Certificate Type': certificate_type,
-            'Description': description
+            'name': name,
+            'certificate_type': certificate_type,
+            'description': description
         })
     
     return anomalous_data
