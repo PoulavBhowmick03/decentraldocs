@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { issueDocument } from "@/actions/issue";
 import { fetchIssuedDocuments } from "@/actions/fetchDocuments";
 import useWallet from "@/hooks/useWallet";
+import Image from "next/image";
 import {
   Table,
   TableBody,
@@ -23,6 +23,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const DocumentsPage = () => {
   const { account } = useWallet();
@@ -33,6 +44,7 @@ const DocumentsPage = () => {
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [image, setImage] = setImage(null);
 
   useEffect(() => {
     if (account) {
@@ -62,87 +74,7 @@ const DocumentsPage = () => {
     setIsLoading(false);
   };
 
-  const handleVerify = async () => {
-    // Implement verification logic here
-        const v = await axios.post("http://localhost:5000/verify", {
-            blockchainHash: doc.blockchainHash,
-            verifierWalletAddress: account,
-        })
-        console.log(v.response)
-  }
-
-//   const handleUpload = async (e) => {
-//     e.preventDefault();
-//     if (!file || !userWalletAddress || !verifierWalletAddress) {
-//       setUploadStatus({
-//         type: "error",
-//         message: "Please fill all fields and select a file to upload.",
-//       });
-//       return;
-//     }
-
-//     const formData = new FormData();
-//     formData.append("file", file);
-//     formData.append("user_wallet_address", userWalletAddress);
-//     formData.append("verifier_wallet_address", verifierWalletAddress);
-//     formData.append("issuer_wallet_address", account);
-
-//     try {
-//       // Step 1: Upload to Flask server
-//       const flaskResponse = await axios.post(
-//         "http://localhost:5000/upload",
-//         formData,
-//         {
-//           headers: {
-//             "Content-Type": "multipart/form-data",
-//           },
-//         }
-//       );
-
-//       console.log("Flask server response:", flaskResponse.data);
-
-//       if (flaskResponse.data.success) {
-//         // Step 2: Issue document using Next.js server action
-//         const issueData = {
-//           blockchainHash: flaskResponse.data.ipfsHash,
-//           ownerId: userWalletAddress,
-//           issuerId: account,
-//           verifierId: verifierWalletAddress,
-//           description: "Document uploaded via web interface",
-//           name: file.name,
-//           type: "OTHER",
-//         };
-
-//         console.log("Issuing document with data:", issueData);
-
-//         const issueResponse = await issueDocument(issueData);
-
-//         console.log("Issue document response:", issueResponse);
-
-//         if (issueResponse.success) {
-//           setUploadStatus({
-//             type: "success",
-//             message: "Document uploaded and issued successfully!",
-//           });
-//           setIsUploadDialogOpen(false);
-//           setUserWalletAddress("");
-//           setVerifierWalletAddress("");
-//           setFile(null);
-//           loadDocuments(); // Refresh the documents list
-//         } else {
-//           throw new Error(issueResponse.message || "Failed to issue document");
-//         }
-//       } else {
-//         throw new Error(flaskResponse.data.message || "Upload failed");
-//       }
-//     } catch (error) {
-//       console.error("Error in handleUpload:", error);
-//       setUploadStatus({
-//         type: "error",
-//         message: error.message || "Error uploading document. Please try again.",
-//       });
-//     }
-//   };
+  const handleView = async () => {};
 
   return (
     <div className="space-y-6 p-6 bg-transparent text-black">
@@ -156,7 +88,7 @@ const DocumentsPage = () => {
             <DialogHeader>
               <DialogTitle>Upload New Document</DialogTitle>
             </DialogHeader>
-            <form  className="space-y-4">
+            <form className="space-y-4">
               <div>
                 <Label htmlFor="userWalletAddress">User Wallet Address</Label>
                 <Input
@@ -220,14 +152,40 @@ const DocumentsPage = () => {
             {documents.map((doc) => (
               <TableRow key={doc.id}>
                 <TableCell>{doc.name}</TableCell>
-                <TableCell>{new Date(doc.issueDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {new Date(doc.issueDate).toLocaleDateString()}
+                </TableCell>
                 <TableCell>{doc.status}</TableCell>
                 <TableCell>{doc.ownerAddress}</TableCell>
                 <TableCell>{doc.verifierAddress}</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm" className="text-white" onClick={handleVerify}>
-                    Verify
-                  </Button>
+                  {/* <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-white"
+                    onClick={handleView}
+                  >
+                    View
+                  </Button> */}
+                  <AlertDialog>
+                    <AlertDialogTrigger>View</AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Certificate</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <Image
+                            alt="cert"
+                            src={`https://gateway.pinata.cloud/ipfs/${doc.blockchainHash}`}
+                            height={100}
+                            weight={100}
+                          />
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogAction>Okay</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
