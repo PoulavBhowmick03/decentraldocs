@@ -1,3 +1,4 @@
+"use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { verifyDocument } from "@/actions/verify";
@@ -52,26 +53,25 @@ const DocumentsPage = () => {
 
   const handleVerify = async (doc) => {
     try {
+      // Show loading status for the document
       setVerificationStatus((prev) => ({ ...prev, [doc.id]: "loading" }));
 
       const result = await verifyDocument(doc.id);
 
       if (result.success) {
+        // Update the status to "verified" and reload documents
         setVerificationStatus((prev) => ({ ...prev, [doc.id]: "verified" }));
-        // Update the local state to reflect the change
-        setDocuments((prevDocs) =>
-          prevDocs.map((d) =>
-            d.id === doc.id ? { ...d, isVerified: true } : d
-          )
-        );
+        await loadDocuments(); // Refresh documents list after verification
       } else {
+        // Handle error during verification
         setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
         setUploadStatus({
           type: "error",
-          message: result.message || "Verification failed",
+          message: result.message,
         });
       }
     } catch (error) {
+      // Handle unexpected errors
       console.error("Error in verification:", error);
       setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
       setUploadStatus({

@@ -1,27 +1,23 @@
-import { PrismaClient } from "@prisma/client";
+// actions/verify.js
 
-const prisma = new PrismaClient();
-
-export async function verifyDocument(documentId) {
+export const verifyDocument = async (documentId) => {
   try {
-    // Simulate AI verification process
-    await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
-
-    // Update the document status in the database
-    const updatedDocument = await prisma.document.update({
-      where: { id: documentId },
-      data: {
-        isVerified: true,
+    const response = await fetch('/api/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ documentId }),
     });
 
-    if (updatedDocument) {
-      return { success: true, verified: true, message: "Document verified successfully" };
-    } else {
-      return { success: false, message: "Failed to update document status" };
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
+
+    const result = await response.json();
+    return result;
   } catch (error) {
-    console.error("Error verifying document:", error);
-    return { success: false, message: `Error during document verification: ${error.message}` };
+    console.error('Error verifying document:', error);
+    return { success: false, message: error.message };
   }
-}
+};

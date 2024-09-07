@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { verifyDocument } from "@/actions/verify";
 import { fetchIssuedDocuments } from "@/actions/fetchDocuments";
 import useWallet from "@/hooks/useWallet";
 import {
@@ -34,7 +32,6 @@ const DocumentsPage = () => {
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [verificationStatus, setVerificationStatus] = useState({});
 
   useEffect(() => {
     if (account) {
@@ -47,7 +44,17 @@ const DocumentsPage = () => {
     try {
       const result = await fetchIssuedDocuments(account);
       if (result.success) {
-        setDocuments(result.documents);
+        const docsWithStatus = await Promise.all(
+          result.documents.map(async (doc) => {
+            const response = await fetch(`/api/verified?id=${doc.id}`);
+            const statusResult = await response.json();
+            return {
+              ...doc,
+              isVerified: statusResult.isVerified,
+            };
+          })
+        );
+        setDocuments(docsWithStatus);
       } else {
         setUploadStatus({
           type: "error",
@@ -64,40 +71,8 @@ const DocumentsPage = () => {
     setIsLoading(false);
   };
 
-  const handleVerify = async (doc) => {
-    try {
-      setVerificationStatus((prev) => ({ ...prev, [doc.id]: "loading" }));
-
-      const result = await verifyDocument(doc.id, account);
-
-      if (result.success) {
-        if (result.verified) {
-          setVerificationStatus((prev) => ({ ...prev, [doc.id]: "verified" }));
-        } else {
-          setVerificationStatus((prev) => ({ ...prev, [doc.id]: "anomaly" }));
-        }
-        // Refresh the documents list
-        await loadDocuments();
-      } else {
-        setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
-        console.error("Verification failed:", result.message);
-        // You might want to show this error message to the user
-        setUploadStatus({
-          type: "error",
-          message: result.message,
-        });
-      }
-    } catch (error) {
-      console.error("Error in verification:", error);
-      setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
-      setUploadStatus({
-        type: "error",
-        message: "An unexpected error occurred during verification.",
-      });
-    }
-  };
   return (
-    <div className="space-y-6 p-6 bg-transparent text-black">
+    <div className="space-y-6 p-6 bg-transparent text-white">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">My Issued Documents</h1>
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
@@ -173,14 +148,26 @@ const DocumentsPage = () => {
               <TableRow key={doc.id}>
                 <TableCell>{doc.name}</TableCell>
                 <TableCell>
-                  {new Date(doc.issueDate).toLocaleDateString()}
+                  {new Date(doc.issuedAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  {verificationStatus[doc.id] === "verified"
-                    ? "Verified"
-                    : verificationStatus[doc.id] === "anomaly"
-                    ? "Anomaly Detected"
-                    : doc.status}
+                  <Button
+                    variant={doc.isVerified ? "default" : "destructive"}
+                    className={`text-white ${
+                      doc.isVerified === null
+                        ? "bg-red-500"
+                        : doc.isVerified
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                    disabled
+                  >
+                    {doc.isVerified === null
+                      ? "Not Verified"
+                      : doc.isVerified
+                      ? "Verified"
+                      : "Not Verified"}
+                  </Button>
                 </TableCell>
                 <TableCell>{doc.ownerAddress}</TableCell>
                 <TableCell>{doc.verifierAddress}</TableCell>
@@ -189,19 +176,9 @@ const DocumentsPage = () => {
                     variant="outline"
                     size="sm"
                     className="text-white"
-                    onClick={() => handleVerify(doc)}
-                    disabled={
-                      verificationStatus[doc.id] === "loading" ||
-                      verificationStatus[doc.id] === "verified"
-                    }
+                    onClick={() => window.open(doc.fileUrl, "_blank")}
                   >
-                    {verificationStatus[doc.id] === "loading"
-                      ? "Verifying..."
-                      : verificationStatus[doc.id] === "verified"
-                      ? "Verified"
-                      : verificationStatus[doc.id] === "anomaly"
-                      ? "Anomaly Detected"
-                      : "Verify"}
+                    View
                   </Button>
                 </TableCell>
               </TableRow>

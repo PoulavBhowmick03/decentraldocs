@@ -1,56 +1,32 @@
-import { NextResponse } from 'next/server';
 import { PrismaClient } from "@prisma/client";
-import axios from "axios";
 
 const prisma = new PrismaClient();
 
-export async function POST(request) {
-  const { documentId, verifierAddress } = await request.json();
-
+export async function POST(req) {
   try {
-    const document = await prisma.document.findUnique({
+    const body = await req.json(); // Parse the request body
+    const { documentId } = body;
+
+    // Simulate AI verification process (optional)
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // Update the document status in the database
+    const updatedDocument = await prisma.document.update({
       where: { id: documentId },
-      include: { issuer: true, owner: true },
+      data: {
+        isVerified: true,
+      },
     });
 
-    if (!document) {
-      return NextResponse.json({ success: false, message: "Document not found" }, { status: 404 });
-    }
-
-    const verifier = await prisma.verifier.findFirst({
-      where: { userId: verifierAddress },
+    return new Response(JSON.stringify({ success: true, message: "Document verified successfully" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
-
-    if (!verifier) {
-      return NextResponse.json({ success: false, message: "Verifier not found" }, { status: 404 });
-    }
-
-    // Call the prediction API
-    const predictionData = {
-      blockchainHash: document.blockchainHash,
-      issuerAddress: document.issuer.userId,
-      ownerAddress: document.owner.id,
-      verifierAddress: verifier.userId,
-      issueDate: document.issuedAt.toISOString(),
-    };
-
-    const predictionResponse = await axios.post("http://localhost:5000/predict", predictionData);
-
-    if (!predictionResponse.data.outlier) {
-      await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          verifierId: verifier.id,
-          updatedAt: new Date(),
-        },
-      });
-
-      return NextResponse.json({ success: true, message: "Document verified successfully" });
-    } else {
-      return NextResponse.json({ success: false, message: "Anomaly detected in the document" });
-    }
   } catch (error) {
-    console.error("Error in document verification:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
-  }
+    console.error("Error verifying document:", error);
+    return new Response(JSON.stringify({ success: false, message: `Error during verification: ${error.message}` }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
