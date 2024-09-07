@@ -1,50 +1,71 @@
-import cv2
-import pytesseract
 from flask import Flask, request, jsonify
-import json
+from flask_cors import CORS
+from werkzeug.utils import secure_filename
+import os
+import requests
 
 app = Flask(__name__)
+CORS(app)  # This will enable CORS for all routes
 
-def preprocess_image(image_path):
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
-    gray = cv2.convertScaleAbs(gray, alpha=1.5, beta=0)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-    return gray
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
-def extract_text(image):
-    custom_config = r'--oem 3 --psm 6'
-    text = pytesseract.image_to_string(image, config=custom_config)
-    return text
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def parse_text(text):
-    # This is a basic parser. You may need to adjust it based on your specific certificate format
-    lines = text.split('\n')
-    data = {
-        "certificate_type": lines[0] if len(lines) > 0 else "",
-        "name": lines[1] if len(lines) > 1 else "",
-        "description": ' '.join(lines[2:]) if len(lines) > 2 else ""
-    }
-    return data
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/abc', methods=['POST'])
-def process_image():
-    if 'image' not in request.files:
-        return jsonify({"error": "No image file provided"}), 400
-
-    image_file = request.files['image']
-    image_path = "temp_image.png"
-    image_file.save(image_path)
-
-    preprocessed_image = preprocess_image(image_path)
-    extracted_text = extract_text(preprocessed_image)
-    parsed_data = parse_text(extracted_text)
-
-    with open('output.json', 'w') as json_file:
-        json.dump(parsed_data, json_file, indent=4)
-
-    return jsonify(parsed_data)
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"success": False, "message": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"success": False, "message": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        # Get wallet addresses from form data
+        user_wallet_address = request.form.get('user_wallet_address')
+        verifier_wallet_address = request.form.get('verifier_wallet_address')
+        issuer_wallet_address = request.form.get('issuer_wallet_address')
+        
+        # Here you would typically interact with your blockchain or other services
+        # For this example, we'll just print the information
+        print(f"File saved: {file_path}")
+        print(f"User Wallet: {user_wallet_address}")
+        print(f"Verifier Wallet: {verifier_wallet_address}")
+        print(f"Issuer Wallet: {issuer_wallet_address}")
+        
+        # Optionally, upload to Pinata (uncomment if you want to use this)
+        
+        pinata_api_key = "c30436a8c6be466658ea"
+        pinata_secret_api_key = "a62b5d89a6fb5737d4af3fd61b363a2871325fdfe5dad92b66d11bb1e95dd175"
+        
+        url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
+        
+        payload = {'pinataOptions': '{"cidVersion": 1}'}
+        files = [('file', (filename, open(file_path, 'rb'), 'application/octet-stream'))]
+        headers = {
+            'pinata_api_key': pinata_api_key,
+            'pinata_secret_api_key': pinata_secret_api_key
+        }
+        
+    response = requests.post(url, headers=headers, data=payload, files=files)
+    ipfs_hash = response.json()['IpfsHash']
+    print(f"IPFS Hash: {ipfs_hash}")
+        
+        
+    return jsonify({
+        "success": True, 
+        "message": "File uploaded successfully",
+        "ipfsHash": ipfs_hash
+    }), 200
+    return jsonify({"success": False, "message": "File type not allowed"}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    app.run(debug=True, port=5000)

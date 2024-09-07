@@ -2,50 +2,92 @@ import prisma from "@/utils/prisma";
 
 export async function POST(request) {
   try {
-    const { walletAddress, organizationType } = await request.json();
+    const { walletAddress, organizationType, organizationName } = await request.json();
 
-    // Validate input
-    if (!walletAddress || organizationType === undefined) {
+    console.log("Received data:", { walletAddress, organizationType, organizationName });
+
+    if (!walletAddress || !organizationType || !organizationName) {
       return new Response(
         JSON.stringify({
-          message: "Wallet Address and Organization Type are required",
+          message: "Wallet Address, Organization Type, and Organization Name are required",
         }),
         { status: 400 }
       );
     }
 
-    // Check if issuer already exists in the issuer table
-    const existingVerifier = await prisma.verifier.findUnique({
-      where: { walletAddress },
-    });
+    // Check if user already exists
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { walletAddress },
+      });
 
-    if (existingVerifier) {
+      if (!user) {
+        // Create new user if not exists
+        user = await prisma.user.create({
+          data: {
+            walletAddress,
+            email: `${walletAddress}@example.com`, // Placeholder email
+            role: "VERIFYING_AUTHORITY",
+          },
+        });
+      }
+    } catch (userError) {
+      console.error("Error in user operations:", userError);
       return new Response(
-        JSON.stringify({ message: "Verifier already exists" }),
-        { status: 400 }
+        JSON.stringify({ message: "Error in user operations", error: userError.message }),
+        { status: 500 }
+      );
+    }
+
+    // Check if verifier already exists
+    try {
+      const existingVerifier = await prisma.verifier.findUnique({
+        where: { userId: user.id },
+      });
+      
+      if (existingVerifier) {
+        return new Response(
+          JSON.stringify({ message: "Verifier already exists" }),
+          { status: 400 }
+        );
+      }
+    } catch (verifierCheckError) {
+      console.error("Error checking existing verifier:", verifierCheckError);
+      return new Response(
+        JSON.stringify({ message: "Error checking existing verifier", error: verifierCheckError.message }),
+        { status: 500 }
       );
     }
 
     // Create new verifier
-    const newVerifier = await prisma.verifier.create({
-      data: {
-        walletAddress,
-        organizationType,
-      },
-    });
+    try {
+      const newVerifier = await prisma.verifier.create({
+        data: {
+          userId: user.id,
+          organizationName,
+          organizationType,
+        },
+      });
 
-    // Return success response
-    return new Response(
-      JSON.stringify({
-        message: "Issuer registered successfully",
-        issuerId: newVerifier.id,
-      }),
-      { status: 201 }
-    );
+      return new Response(
+        JSON.stringify({
+          message: "Verifier registered successfully",
+          verifierId: newVerifier.id,
+        }),
+        { status: 201 }
+      );
+    } catch (verifierCreateError) {
+      console.error("Error creating new verifier:", verifierCreateError);
+      return new Response(
+        JSON.stringify({ message: "Error creating new verifier", error: verifierCreateError.message }),
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Unexpected error in registration process:", error);
     return new Response(
-      JSON.stringify({ message: "Internal server error" }),
+      JSON.stringify({ message: "Unexpected error in registration process", error: error.message }),
       { status: 500 }
     );
   }
