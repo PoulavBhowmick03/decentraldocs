@@ -63,16 +63,20 @@ const DocumentsPage = () => {
       });
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("image", file);
-
+  
     try {
       const response = await axios.post("http://localhost:5000/abc", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        withCredentials: false,
       });
+  
+      console.log("Server response:", response.data);
+  
 
       const res = await axios.post(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
@@ -118,6 +122,18 @@ const DocumentsPage = () => {
       setFile(null);
     } catch (error) {
       console.error("Error uploading document:", error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error("Server responded with error:", error.response.data);
+        console.error("Status code:", error.response.status);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error("No response received:", error.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error("Error setting up request:", error.message);
+      }
       setUploadStatus({
         type: "error",
         message: "Error uploading document. Please try again.",
