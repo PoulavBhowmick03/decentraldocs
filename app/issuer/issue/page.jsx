@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { issueDocument } from "@/actions/issue";
@@ -22,6 +23,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const DocumentsPage = () => {
@@ -211,14 +223,32 @@ const DocumentsPage = () => {
             {documents.map((doc) => (
               <TableRow key={doc.id}>
                 <TableCell>{doc.name}</TableCell>
-                <TableCell>{new Date(doc.issueDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {new Date(doc.issueDate).toLocaleDateString()}
+                </TableCell>
                 <TableCell>{doc.status}</TableCell>
                 <TableCell>{doc.ownerAddress}</TableCell>
                 <TableCell>{doc.verifierAddress}</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">
-                    View
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger>View</AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Certificate</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <Image
+                            alt="cert"
+                            src={`https://gateway.pinata.cloud/ipfs/${doc.blockchainHash}`}
+                            height={100}
+                            weight={100}
+                          />
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogAction>Okay</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
