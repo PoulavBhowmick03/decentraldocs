@@ -64,7 +64,7 @@ export async function POST(request) {
     try {
       const newIssuer = await prisma.issuer.create({
         data: {
-          userId: user.id,
+          userId: walletAddress,
           organizationName: "Default Organization", // You might want to add this to the frontend form
           organizationType,
         },
