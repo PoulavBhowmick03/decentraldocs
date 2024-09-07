@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { issueDocument } from "@/actions/issue";
+import { verifyDocument } from "@/actions/verify";
 import { fetchIssuedDocuments } from "@/actions/fetchDocuments";
 import useWallet from "@/hooks/useWallet";
 import {
@@ -33,6 +34,7 @@ const DocumentsPage = () => {
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [verificationStatus, setVerificationStatus] = useState({});
 
   useEffect(() => {
     if (account) {
@@ -62,88 +64,38 @@ const DocumentsPage = () => {
     setIsLoading(false);
   };
 
-  const handleVerify = async () => {
-    // Implement verification logic here
-        const v = await axios.post("http://localhost:5000/verify", {
-            blockchainHash: doc.blockchainHash,
-            verifierWalletAddress: account,
-        })
-        console.log(v.response)
-  }
+  const handleVerify = async (doc) => {
+    try {
+      setVerificationStatus((prev) => ({ ...prev, [doc.id]: "loading" }));
 
-//   const handleUpload = async (e) => {
-//     e.preventDefault();
-//     if (!file || !userWalletAddress || !verifierWalletAddress) {
-//       setUploadStatus({
-//         type: "error",
-//         message: "Please fill all fields and select a file to upload.",
-//       });
-//       return;
-//     }
+      const result = await verifyDocument(doc.id, account);
 
-//     const formData = new FormData();
-//     formData.append("file", file);
-//     formData.append("user_wallet_address", userWalletAddress);
-//     formData.append("verifier_wallet_address", verifierWalletAddress);
-//     formData.append("issuer_wallet_address", account);
-
-//     try {
-//       // Step 1: Upload to Flask server
-//       const flaskResponse = await axios.post(
-//         "http://localhost:5000/upload",
-//         formData,
-//         {
-//           headers: {
-//             "Content-Type": "multipart/form-data",
-//           },
-//         }
-//       );
-
-//       console.log("Flask server response:", flaskResponse.data);
-
-//       if (flaskResponse.data.success) {
-//         // Step 2: Issue document using Next.js server action
-//         const issueData = {
-//           blockchainHash: flaskResponse.data.ipfsHash,
-//           ownerId: userWalletAddress,
-//           issuerId: account,
-//           verifierId: verifierWalletAddress,
-//           description: "Document uploaded via web interface",
-//           name: file.name,
-//           type: "OTHER",
-//         };
-
-//         console.log("Issuing document with data:", issueData);
-
-//         const issueResponse = await issueDocument(issueData);
-
-//         console.log("Issue document response:", issueResponse);
-
-//         if (issueResponse.success) {
-//           setUploadStatus({
-//             type: "success",
-//             message: "Document uploaded and issued successfully!",
-//           });
-//           setIsUploadDialogOpen(false);
-//           setUserWalletAddress("");
-//           setVerifierWalletAddress("");
-//           setFile(null);
-//           loadDocuments(); // Refresh the documents list
-//         } else {
-//           throw new Error(issueResponse.message || "Failed to issue document");
-//         }
-//       } else {
-//         throw new Error(flaskResponse.data.message || "Upload failed");
-//       }
-//     } catch (error) {
-//       console.error("Error in handleUpload:", error);
-//       setUploadStatus({
-//         type: "error",
-//         message: error.message || "Error uploading document. Please try again.",
-//       });
-//     }
-//   };
-
+      if (result.success) {
+        if (result.verified) {
+          setVerificationStatus((prev) => ({ ...prev, [doc.id]: "verified" }));
+        } else {
+          setVerificationStatus((prev) => ({ ...prev, [doc.id]: "anomaly" }));
+        }
+        // Refresh the documents list
+        await loadDocuments();
+      } else {
+        setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
+        console.error("Verification failed:", result.message);
+        // You might want to show this error message to the user
+        setUploadStatus({
+          type: "error",
+          message: result.message,
+        });
+      }
+    } catch (error) {
+      console.error("Error in verification:", error);
+      setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
+      setUploadStatus({
+        type: "error",
+        message: "An unexpected error occurred during verification.",
+      });
+    }
+  };
   return (
     <div className="space-y-6 p-6 bg-transparent text-black">
       <div className="flex justify-between items-center">
@@ -156,7 +108,7 @@ const DocumentsPage = () => {
             <DialogHeader>
               <DialogTitle>Upload New Document</DialogTitle>
             </DialogHeader>
-            <form  className="space-y-4">
+            <form className="space-y-4">
               <div>
                 <Label htmlFor="userWalletAddress">User Wallet Address</Label>
                 <Input
@@ -220,13 +172,36 @@ const DocumentsPage = () => {
             {documents.map((doc) => (
               <TableRow key={doc.id}>
                 <TableCell>{doc.name}</TableCell>
-                <TableCell>{new Date(doc.issueDate).toLocaleDateString()}</TableCell>
-                <TableCell>{doc.status}</TableCell>
+                <TableCell>
+                  {new Date(doc.issueDate).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {verificationStatus[doc.id] === "verified"
+                    ? "Verified"
+                    : verificationStatus[doc.id] === "anomaly"
+                    ? "Anomaly Detected"
+                    : doc.status}
+                </TableCell>
                 <TableCell>{doc.ownerAddress}</TableCell>
                 <TableCell>{doc.verifierAddress}</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm" className="text-white" onClick={handleVerify}>
-                    Verify
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-white"
+                    onClick={() => handleVerify(doc)}
+                    disabled={
+                      verificationStatus[doc.id] === "loading" ||
+                      verificationStatus[doc.id] === "verified"
+                    }
+                  >
+                    {verificationStatus[doc.id] === "loading"
+                      ? "Verifying..."
+                      : verificationStatus[doc.id] === "verified"
+                      ? "Verified"
+                      : verificationStatus[doc.id] === "anomaly"
+                      ? "Anomaly Detected"
+                      : "Verify"}
                   </Button>
                 </TableCell>
               </TableRow>
