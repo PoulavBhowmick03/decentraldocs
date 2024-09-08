@@ -21,6 +21,8 @@ const sidebarItems = [
   { icon: User, label: "My Profile", href: "/user/profile" },
   { icon: Settings, label: "Settings", href: "/user/settings" },
 ];
+import ConnectWallet from "@/components/ConnectWallet";
+import useWallet from "@/hooks/useWallet";
 
 export default function UserSidebar() {
   const [authenticated, setAuthenticated] = useAuth();
@@ -38,6 +40,7 @@ export default function UserSidebar() {
       console.error("Logout error:", error);
     }
   };
+  const { account, connect, disconnect, switchWallet } = useWallet();
 
   return (
     <div className="w-64 bg-card text-card-foreground p-4 space-y-4 border-r">
@@ -54,13 +57,16 @@ export default function UserSidebar() {
             </Button>
           </Link>
         ))}
+        <ConnectWallet
+          account={account}
+          connect={connect}
+          disconnect={disconnect}
+          switchWallet={switchWallet}
+        />
       </nav>
       <div className="absolute bottom-4 w-52">
         <Button variant="outline" className="w-full" onClick={handleLogout}>
-          <LogOut
-            onClick={handleLogout}
-            className="mr-2 h-4 w-4"
-          />
+          <LogOut onClick={handleLogout} className="mr-2 h-4 w-4" />
           Logout
         </Button>
       </div>
