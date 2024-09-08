@@ -263,6 +263,7 @@ export default function LandingPage() {
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
+              <Link href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
               <Button
                 size="lg"
                 variant="outline"
@@ -271,6 +272,7 @@ export default function LandingPage() {
                 Watch Demo
                 <Play className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
               </Button>
+              </Link>
             </motion.div>
             <motion.div
               className="flex justify-center space-x-8 mt-12"
