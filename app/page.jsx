@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
-
+import DDcontact from "@/public/DDcontact.png";
 import { useState, useEffect, useRef } from "react";
 import {
   motion,
@@ -127,11 +127,16 @@ export default function LandingPage() {
           />
         </svg>
       </div>
-      <header className="fixed top-0 left-0 right-0 z-40 bg-gray-900 bg-opacity-80 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-transparent bg-opacity-80 backdrop-blur-md">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-blue-400">
-            DecentralDocs
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              href="/"
+              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary"
+            >
+              DecentralDocs
+            </Link>
+          </motion.div>{" "}
           <div className="hidden md:flex space-x-6">
             <Link
               href="#features"
@@ -164,9 +169,11 @@ export default function LandingPage() {
               Contact
             </Link>
           </div>
-          <Button className="hidden md:inline-flex bg-blue-600 hover:bg-blue-700 text-white">
-            Sign Up
-          </Button>
+          <Link href={"/register"}>
+            <Button className="hidden md:inline-flex bg-blue-600 hover:bg-blue-700 text-white">
+              Sign Up
+            </Button>
+          </Link>
           <button
             className="md:hidden text-white"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -561,7 +568,7 @@ export default function LandingPage() {
               </div>
               <div className="relative">
                 <Image
-                  src="/placeholder.svg?height=400&width=600"
+                  src={DDcontact}
                   alt="DecentralDocs Dashboard"
                   width={600}
                   height={400}

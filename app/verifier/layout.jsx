@@ -6,7 +6,7 @@ import Header from './components/Header'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'BlockLocker Verifier Portal',
+  title: 'DecentralDocs Verifier Portal',
   description: 'Secure document verification for authorized personnel',
 }
 

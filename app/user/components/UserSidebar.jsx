@@ -41,7 +41,7 @@ export default function UserSidebar() {
 
   return (
     <div className="w-64 bg-card text-card-foreground p-4 space-y-4 border-r">
-      <div className="text-2xl font-bold mb-6">BlockLocker</div>
+      <div className="text-2xl font-bold mb-6">DecentralDocs</div>
       <nav className="space-y-2">
         {sidebarItems.map((item) => (
           <Link key={item.href} href={item.href}>

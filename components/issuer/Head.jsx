@@ -19,7 +19,7 @@ const Head = () => {
               Welcome Back, {user}
             </h1>
             <p className="mt-1.5 text-sm text-black">
-              You can see your BlockLocker issued documents here!
+              You can see your DecentralDocs issued documents here!
             </p>
           </div>
 
