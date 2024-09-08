@@ -59,7 +59,7 @@ const DocumentsPage = () => {
       const result = await fetchIssuedDocuments(account);
       if (result.success) {
         setDocuments(result.documents);
-        console.log(result.documents)
+        console.log(result.documents);
       } else {
         setUploadStatus({
           type: "error",
@@ -148,7 +148,9 @@ const DocumentsPage = () => {
       });
     }
   };
-
+  const getIpfsUrl = (hash) => {
+    return `https://aquamarine-impressed-ant-623.mypinata.cloud/ipfs/${hash}`;
+  };
   return (
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
@@ -233,21 +235,33 @@ const DocumentsPage = () => {
                 <TableCell>{doc.verifierAddress}</TableCell>
                 <TableCell>
                   <AlertDialog>
-                    <AlertDialogTrigger>View</AlertDialogTrigger>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline">View</Button>
+                    </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Certificate</AlertDialogTitle>
                         <AlertDialogDescription>
-                          <Image
-                            alt="cert"
-                            src={`https://gateway.pinata.cloud/ipfs/${doc.blockchainHash}`}
-                            height={100}
-                            width={100}
-                          />
+                          {doc.blockchainHash ? (
+                            <div className="relative w-full h-64">
+                              <Image
+                                alt="Certificate"
+                                src={getIpfsUrl(doc.blockchainHash)}
+                                layout="fill"
+                                objectFit="contain"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "/placeholder-image.png"; // Replace with your placeholder image path
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <p>No image available</p>
+                          )}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogAction>Okay</AlertDialogAction>
+                        <AlertDialogAction>Close</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>

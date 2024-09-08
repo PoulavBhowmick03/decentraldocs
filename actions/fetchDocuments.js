@@ -36,6 +36,7 @@ export async function fetchIssuedDocuments(issuerWalletAddress) {
         status: doc.verifier ? 'Verified' : 'Pending',
         ownerAddress: doc.owner.walletAddress,
         verifierAddress: doc.verifier?.user.walletAddress || 'Not assigned',
+        blockchainHash: doc.blockchainHash, // Include the blockchain hash
       })),
     };
   } catch (error) {

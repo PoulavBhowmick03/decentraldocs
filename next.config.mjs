@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-      domains: ['gateway.pinata.cloud'], // Allows images from this domain
+      domains: ['aquamarine-impressed-ant-623.mypinata.cloud'], // Allows images from this domain
     },
   };
   
