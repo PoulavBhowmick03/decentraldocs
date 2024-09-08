@@ -228,7 +228,7 @@ const DocumentsPage = () => {
                 <TableCell>
                   {new Date(doc.issueDate).toLocaleDateString()}
                 </TableCell>
-                <TableCell>{doc.status}</TableCell>
+                <TableCell>{doc.isVerified}</TableCell>
                 <TableCell>{doc.ownerAddress}</TableCell>
                 <TableCell>{doc.verifierAddress}</TableCell>
                 <TableCell>
