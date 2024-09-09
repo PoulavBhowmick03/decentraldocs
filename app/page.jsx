@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
+
 import DDcontact from "@/public/DDcontact.png";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { Testimonial } from "@/components/Testimonials";
 const features = [
   { icon: Shield, text: "Secure" },
   { icon: FileText, text: "Smart Contracts" },
@@ -508,46 +510,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="testimonials" className="py-20 bg-gray-800 relative">
-          <div className="container mx-auto px-6">
-            <h2 className="text-4xl font-bold mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-              What Our Clients Say
-            </h2>
-            <div className="max-w-4xl mx-auto">
-              <motion.div
-                key={currentTestimonial}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="bg-gray-900 p-8 rounded-lg text-center"
-              >
-                <p className="text-xl text-gray-300 mb-4">
-                  "{testimonials[currentTestimonial].content}"
-                </p>
-                <p className="text-blue-400 font-semibold">
-                  {testimonials[currentTestimonial].name}
-                </p>
-                <p className="text-gray-500">
-                  {testimonials[currentTestimonial].role}
-                </p>
-              </motion.div>
-              <div className="flex justify-center mt-8 space-x-2">
-                {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentTestimonial(index)}
-                    className={`w-3 h-3 rounded-full ${
-                      index === currentTestimonial
-                        ? "bg-blue-500"
-                        : "bg-gray-600"
-                    }`}
-                    aria-label={`View testimonial ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+        <section>
+          <Testimonial />
         </section>
 
         <section className="py-20 relative">

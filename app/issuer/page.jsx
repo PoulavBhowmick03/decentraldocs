@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, FileText, LogOut, Plus } from "lucide-react";
+import { User, LogOut, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Toaster, toast } from "react-hot-toast";
-import Navigation from "@/components/Navigation";
+import { Toaster } from "react-hot-toast";
+import { fetchIssuedDocuments } from "@/actions/fetchDocuments";
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -25,7 +25,7 @@ const cardVariants = {
 };
 
 const Head = ({ user }) => (
-  <header className="bg-white shadow-sm mb-8">
+  <header className=" shadow-sm mb-8">
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center">
         <div>
@@ -61,15 +61,15 @@ const DocumentArray = ({ documents }) => (
           <Card>
             <CardContent className="pt-6">
               <Image
-                src="/sample.webp"
-                alt={doc.title}
+                src={doc.imageUrl || "/sample.webp"}
+                alt={doc.name}
                 width={200}
                 height={100}
                 className="w-full h-40 object-cover rounded-t-lg"
               />
               <CardHeader>
-                <CardTitle>{doc.title}</CardTitle>
-                <CardDescription>{doc.subtitle}</CardDescription>
+                <CardTitle>{doc.name}</CardTitle>
+                <CardDescription>{new Date(doc.issueDate).toLocaleDateString()}</CardDescription>
               </CardHeader>
             </CardContent>
           </Card>
@@ -84,32 +84,43 @@ export default function IssuerPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (auth) {
       router.push("/404");
     } else {
-      // Simulate fetching user data
-      setUser("Sagar Rana");
-      
-      // Simulate fetching documents
-      const fakeDocuments = Array.from({ length: 6 }, (_, i) => ({
-        id: i + 1,
-        title: `Document ${i + 1}`,
-        subtitle: `Subtitle for Document ${i + 1}`,
-        image: "/sample.webp",
-      }));
-      setDocuments(fakeDocuments);
+      fetchUserData();
+      fetchDocuments();
     }
   }, [auth, router]);
 
-  if (!user) {
+  const fetchUserData = async () => {
+    // Replace this with actual API call to fetch user data
+    setUser("Sagar Rana");
+  };
+
+  const fetchDocuments = async () => {
+    setIsLoading(true);
+    try {
+      const result = await fetchIssuedDocuments();
+      if (result.success) {
+        setDocuments(result.documents);
+      } else {
+        console.error("Failed to fetch documents:", result.message);
+      }
+    } catch (error) {
+      console.error("Error loading documents:", error);
+    }
+    setIsLoading(false);
+  };
+
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* <Navigation /> */}
+    <div className="min-h-screen">
       <motion.div
         initial="initial"
         animate="in"

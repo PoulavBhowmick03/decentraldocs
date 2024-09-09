@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client";
-import Image from "next/image";
+"use client"
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import { issueDocument } from "@/actions/issue";
 import { fetchIssuedDocuments } from "@/actions/fetchDocuments";
 import useWallet from "@/hooks/useWallet";
@@ -27,7 +28,6 @@ import {
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -36,6 +36,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Upload, Eye, X } from "lucide-react";
 
 const DocumentsPage = () => {
   const { account } = useWallet();
@@ -59,7 +60,6 @@ const DocumentsPage = () => {
       const result = await fetchIssuedDocuments(account);
       if (result.success) {
         setDocuments(result.documents);
-        console.log(result.documents);
       } else {
         setUploadStatus({
           type: "error",
@@ -93,7 +93,6 @@ const DocumentsPage = () => {
     formData.append("issuer_wallet_address", account);
 
     try {
-      // Step 1: Upload to Flask server
       const flaskResponse = await axios.post(
         "http://localhost:5000/upload",
         formData,
@@ -104,10 +103,7 @@ const DocumentsPage = () => {
         }
       );
 
-      console.log("Flask server response:", flaskResponse.data);
-
       if (flaskResponse.data.success) {
-        // Step 2: Issue document using Next.js server action
         const issueData = {
           blockchainHash: flaskResponse.data.ipfsHash,
           ownerId: userWalletAddress,
@@ -118,11 +114,7 @@ const DocumentsPage = () => {
           type: "OTHER",
         };
 
-        console.log("Issuing document with data:", issueData);
-
         const issueResponse = await issueDocument(issueData);
-
-        console.log("Issue document response:", issueResponse);
 
         if (issueResponse.success) {
           setUploadStatus({
@@ -133,7 +125,7 @@ const DocumentsPage = () => {
           setUserWalletAddress("");
           setVerifierWalletAddress("");
           setFile(null);
-          loadDocuments(); // Refresh the documents list
+          loadDocuments();
         } else {
           throw new Error(issueResponse.message || "Failed to issue document");
         }
@@ -148,18 +140,36 @@ const DocumentsPage = () => {
       });
     }
   };
+
   const getIpfsUrl = (hash) => {
     return `https://aquamarine-impressed-ant-623.mypinata.cloud/ipfs/${hash}`;
   };
+
   return (
-    <div className="space-y-6 p-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6 p-6 min-h-screen"
+    >
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">My Issued Documents</h1>
+        <motion.h1
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          className="text-3xl font-bold text-gray-800"
+        >
+          My Issued Documents
+        </motion.h1>
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Upload New Document</Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => setIsUploadDialogOpen(true)}
+            >
+              <Upload className="mr-2 h-4 w-4" /> Upload New Document
+            </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Upload New Document</DialogTitle>
             </DialogHeader>
@@ -171,6 +181,7 @@ const DocumentsPage = () => {
                   value={userWalletAddress}
                   onChange={(e) => setUserWalletAddress(e.target.value)}
                   placeholder="Enter User Wallet Address"
+                  className="mt-1"
                 />
               </div>
               <div>
@@ -182,6 +193,7 @@ const DocumentsPage = () => {
                   value={verifierWalletAddress}
                   onChange={(e) => setVerifierWalletAddress(e.target.value)}
                   placeholder="Enter Verifier Wallet Address"
+                  className="mt-1"
                 />
               </div>
               <div>
@@ -190,88 +202,133 @@ const DocumentsPage = () => {
                   id="documentFile"
                   type="file"
                   onChange={(e) => setFile(e.target.files[0])}
+                  className="mt-1"
                 />
               </div>
-              <Button type="submit">Upload</Button>
+              <Button type="submit" className="w-full">
+                Upload
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {uploadStatus && (
-        <Alert
-          variant={uploadStatus.type === "error" ? "destructive" : "default"}
-        >
-          <AlertTitle>
-            {uploadStatus.type === "error" ? "Error" : "Success"}
-          </AlertTitle>
-          <AlertDescription>{uploadStatus.message}</AlertDescription>
-        </Alert>
-      )}
+      <AnimatePresence>
+        {uploadStatus && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+          >
+            <Alert
+              variant={uploadStatus.type === "error" ? "destructive" : "default"}
+            >
+              <AlertTitle>
+                {uploadStatus.type === "error" ? "Error" : "Success"}
+              </AlertTitle>
+              <AlertDescription>{uploadStatus.message}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {isLoading ? (
-        <div>Loading documents...</div>
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+          <span>Loading documents...</span>
+        </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Document Name</TableHead>
-              <TableHead>Issue Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Owner Address</TableHead>
-              <TableHead>Verifier Address</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {documents.map((doc) => (
-              <TableRow key={doc.id}>
-                <TableCell>{doc.name}</TableCell>
-                <TableCell>
-                  {new Date(doc.issueDate).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{doc.isVerified}</TableCell>
-                <TableCell>{doc.ownerAddress}</TableCell>
-                <TableCell>{doc.verifierAddress}</TableCell>
-                <TableCell>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline">View</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Certificate</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {doc.blockchainHash ? (
-                            <div className="relative w-full h-64">
-                              <Image
-                                alt="Certificate"
-                                src={getIpfsUrl(doc.blockchainHash)}
-                                layout="fill"
-                                objectFit="contain"
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = "/placeholder-image.png"; // Replace with your placeholder image path
-                                }}
-                              />
-                            </div>
-                          ) : (
-                            <p>No image available</p>
-                          )}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogAction>Close</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </TableCell>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Document Name</TableHead>
+                <TableHead>Issue Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Owner Address</TableHead>
+                <TableHead>Verifier Address</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {documents.map((doc, index) => (
+                <motion.tr
+                  key={doc.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <TableCell className="font-medium">{doc.name}</TableCell>
+                  <TableCell>
+                    {new Date(doc.issueDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        doc.isVerified
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {doc.isVerified ? "Verified" : "Pending"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {doc.ownerAddress.slice(0, 6)}...
+                    {doc.ownerAddress.slice(-4)}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {doc.verifierAddress.slice(0, 6)}...
+                    {doc.verifierAddress.slice(-4)}
+                  </TableCell>
+                  <TableCell>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Eye className="mr-2 h-4 w-4" /> View
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Certificate</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {doc.blockchainHash ? (
+                              <div className="relative w-full h-64">
+                                <Image
+                                  alt="Certificate"
+                                  src={getIpfsUrl(doc.blockchainHash)}
+                                  layout="fill"
+                                  objectFit="contain"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "/placeholder-image.png";
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <p>No image available</p>
+                            )}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogAction>
+                            <X className="mr-2 h-4 w-4" /> Close
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </TableBody>
+          </Table>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

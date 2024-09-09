@@ -38,7 +38,7 @@ export default function Navigation() {
 
   return (
     <motion.nav
-      className={`fixed w-full z-50 transition-all duration-300 top-2 ${
+      className={`z-50 transition-all duration-300 top-2 ${
         scrolled ? 'bg-background/80 backdrop-blur-md shadow-md' : 'bg-transparent'
       }`}
       initial="hidden"
@@ -46,7 +46,7 @@ export default function Navigation() {
       variants={variants}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-4">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

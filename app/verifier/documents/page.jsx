@@ -128,7 +128,7 @@ const DocumentsPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-white"
+                    className="text-black"
                     onClick={() => handleVerify(doc)}
                     disabled={
                       verificationStatus[doc.id] === "loading" ||
