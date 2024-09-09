@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 const cardData = [
   {
@@ -60,37 +63,34 @@ const cardData = [
   },
 ];
 
-export const DocumentArray = () => {
-  return (
-    <div className="max-w-6xl py-4 pr-10 pl-8">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-bold">Your Issued Documents</h2>
-        <Link href="/issuer/issued" className="text-blue-600 font-semibold">
-          View All
-        </Link>
-      </div>
-      <div className="overflow-x-scroll scrollbar-hide">
-        <div className="grid grid-flow-col auto-cols-min grid-rows-2 gap-x-5 gap-y-8">
-          {cardData.map((card, index) => (
-            <div
-              key={card.id}
-              className={`min-w-[300px] p-4 min-h-[px] bg-white rounded-lg shadow-md flex-shrink-0 ${
-                index % 2 === 0 ? "row-start-1" : "row-start-2"
-              }`}
-            >
+const DocumentArray = ({ documents }) => (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-bold text-gray-900">Your Issued Documents</h2>
+      <Link href="/issuer/issued" passHref>
+        <Button variant="link" className="text-blue-600">View All</Button>
+      </Link>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {documents.map((doc) => (
+        <motion.div key={doc.id} variants={cardVariants} whileHover="hover">
+          <Card>
+            <CardContent className="pt-6">
               <Image
                 src="/sample.webp"
-                alt={card.title}
-                // className="w-full h-24 object-contain mb-2"
+                alt={doc.title}
                 width={200}
                 height={100}
+                className="w-full h-40 object-cover rounded-t-lg"
               />
-              <h3 className="text-sm font-semibold">{card.title}</h3>
-              <p className="text-xs text-gray-600">{card.subtitle}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+              <CardHeader>
+                <CardTitle>{doc.title}</CardTitle>
+                <CardDescription>{doc.subtitle}</CardDescription>
+              </CardHeader>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
     </div>
-  );
-};
+  </div>
+);

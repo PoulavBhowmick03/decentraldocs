@@ -12,9 +12,12 @@ import { IoSettings } from "react-icons/io5";
 import Image from "next/image";
 
 import logo from "@/public/logo.svg";
+import ConnectWallet from "@/components/ConnectWallet";
+import useWallet from "@/hooks/useWallet";
 
 export default function Sidebar({ show, setter }) {
   const router = useRouter();
+  const { account, connect, disconnect, switchWallet } = useWallet();
 
   const className =
     "bg-gray-800 w-[250px] transition-[margin-left] ease-in-out duration-500 fixed md:static top-0 bottom-0 left-0 z-40";
@@ -82,6 +85,12 @@ export default function Sidebar({ show, setter }) {
             icon={<IoSettings />}
           />
         </div>
+        <ConnectWallet
+          account={account}
+          connect={connect}
+          disconnect={disconnect}
+          switchWallet={switchWallet}
+        />
       </div>
       {show ? <ModalOverlay /> : <></>}
     </>

@@ -1,6 +1,6 @@
 "use client"
 import { ThemeProvider } from "@/components/theme-provider";
-import UserSidebar from "./components/UserSidebar";
+import Sidebar from "./components/UserSidebar";
 import '../globals.css';
 import { useAuth } from '@/hooks/useAuth'; // Import the custom hook
 
@@ -15,7 +15,7 @@ export default function UserLayout({ children }) {
       disableTransitionOnChange
     >
       <div className="flex h-screen bg-background">
-        {authenticated ? <UserSidebar /> : null} {/* Conditionally render sidebar */}
+        {authenticated ? <Sidebar /> : null} {/* Conditionally render sidebar */}
         <main className="flex-1 overflow-y-auto p-8">{children}</main>
       </div>
     </ThemeProvider>

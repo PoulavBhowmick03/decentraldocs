@@ -1,13 +1,14 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 import joblib
-import json
-from flask import Flask, request, jsonify
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app, resources={r"/predict": {"origins": "http://localhost:3000"}})
 
 # Load the trained model and preprocessor
 model = joblib.load("certidicate.pkl")
@@ -67,25 +68,21 @@ def preprocess_new_data(new_data):
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Parse JSON request data
         json_data = request.json
-        
-        # Convert JSON data to a DataFrame
         df = pd.DataFrame([json_data])
         
-        # Preprocess the new data
         X_new, feature_names = preprocess_new_data(df)
-        
-        # Predict using the trained model
         y_pred = model.predict(X_new)
         
-        # Return the result as JSON
-        result = {"outlier": True if y_pred[0] == -1 else False}
-        return jsonify(result)
+        result = {"outlier": bool(y_pred[0] == -1)}
+        return jsonify(result), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
     
     except Exception as e:
         return jsonify({"error": str(e)})
 
 # Main function to run the Flask app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0",port=8080)

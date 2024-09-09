@@ -19,7 +19,7 @@ const Custom404 = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
         <div className="relative">
           <div className="absolute inset-0 flex items-center justify-center">

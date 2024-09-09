@@ -10,7 +10,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState({
     name: 'John Doe',
     email: 'john@example.com',
-    bio: 'I am a user of BlockLocker.',
+    bio: 'I am a user of DecentralDocs.',
   })
 
   const handleChange = (e) => {

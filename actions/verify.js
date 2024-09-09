@@ -1,17 +1,23 @@
-"use server"
+// actions/verify.js
 
-import { PrismaClient } from "@prisma/client"
+export const verifyDocument = async (documentId) => {
+  try {
+    const response = await fetch('/api/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ documentId }),
+    });
 
-const prisma = new PrismaClient()
-
-export async function verifyDocument(data) {
-    try {
-        const {title, content, issuedAt, blockchainHash, ownerId, issuerId, type} = data;
-
-        
-
-        return 200
-    } catch (e) {
-        return 500
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-}
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error verifying document:', error);
+    return { success: false, message: error.message };
+  }
+};
