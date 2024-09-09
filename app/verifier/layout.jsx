@@ -1,3 +1,5 @@
+"use client";
+
 import { Inter } from "next/font/google";
 import "../globals.css";
 import Sidebar from "./components/Sidebar";
@@ -8,10 +10,10 @@ import getAccountType from "@/actions/getAccountType";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "DecentralDocs Verifier Portal",
-  description: "Secure document verification for authorized personnel",
-};
+// export const metadata = {
+//   title: "DecentralDocs Verifier Portal",
+//   description: "Secure document verification for authorized personnel",
+// };
 
 export default function VerifierLayout({ children }) {
   const { account } = useWallet();
