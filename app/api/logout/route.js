@@ -1,3 +1,4 @@
+export const runtime = 'node';
 import { NextResponse } from 'next/server';
 // import { verifyJwt } from '@/utils/jwt'; // Helper function to verify JWT
 

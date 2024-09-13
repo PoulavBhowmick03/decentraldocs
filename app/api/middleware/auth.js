@@ -1,3 +1,4 @@
+export const runtime = 'node';
 import jwt from 'jsonwebtoken'
 
 export function authMiddleware(handler) {

@@ -1,4 +1,5 @@
-// app/api/documents/route.js
+export const runtime = 'node';
+
 import { NextResponse } from 'next/server';
 import { PrismaClient } from "@prisma/client";
 
