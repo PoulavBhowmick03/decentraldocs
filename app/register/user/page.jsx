@@ -26,6 +26,12 @@ export default function UserRegistration() {
     out: { opacity: 0, y: -20 },
   };
 
+  const cardVariants = {
+    initial: { scale: 0.9, opacity: 0 },
+    in: { scale: 1, opacity: 1 },
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!account) {

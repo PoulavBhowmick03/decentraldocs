@@ -1,5 +1,4 @@
-export const runtime = 'node';
-
+// api/verified/route.js
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();

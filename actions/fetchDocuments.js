@@ -23,9 +23,6 @@ export async function fetchIssuedDocuments(issuerWalletAddress) {
         verifier: {
           include: { user: true },
         },
-        issuer:{
-          select: { organizationType: true },
-        }
       },
       orderBy: { issuedAt: 'desc' },
     });
@@ -41,7 +38,6 @@ export async function fetchIssuedDocuments(issuerWalletAddress) {
         verifierAddress: doc.verifier?.user.walletAddress || 'Not assigned',
         blockchainHash: doc.blockchainHash,
         isVerified: doc.isVerified,
-        orgType : doc.issuer?.organizationType,
       })),
     };
   } catch (error) {
