@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import useContract from "@/hooks/UseContract";
 
 const DocumentsPage = () => {
   const { account } = useWallet();
@@ -22,6 +23,8 @@ const DocumentsPage = () => {
   const [uploadStatus, setUploadStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState({});
+
+  const contract = useContract();
 
   useEffect(() => {
     if (account) {
@@ -62,6 +65,9 @@ const DocumentsPage = () => {
         // Update the status to "verified" and reload documents
         setVerificationStatus((prev) => ({ ...prev, [doc.id]: "verified" }));
         await loadDocuments(); // Refresh documents list after verification
+
+        const tx = await contract.verifyDocument(doc.id);
+        // console.log("Transaction hash:", tx.hash);
       } else {
         // Handle error during verification
         setVerificationStatus((prev) => ({ ...prev, [doc.id]: "error" }));
@@ -131,8 +137,7 @@ const DocumentsPage = () => {
                     className="text-black"
                     onClick={() => handleVerify(doc)}
                     disabled={
-                      verificationStatus[doc.id] === "loading" ||
-                      doc.isVerified
+                      verificationStatus[doc.id] === "loading" || doc.isVerified
                     }
                   >
                     {verificationStatus[doc.id] === "loading" ? (

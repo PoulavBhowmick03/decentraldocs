@@ -1,4 +1,4 @@
-"use client"
+"use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, Upload, Eye } from "lucide-react";
+import useContract from "@/hooks/UseContract";
 
 const DocumentsPage = () => {
   const { account } = useWallet();
@@ -36,6 +37,7 @@ const DocumentsPage = () => {
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const contract = useContract();
 
   useEffect(() => {
     if (account) {
@@ -106,6 +108,13 @@ const DocumentsPage = () => {
         const issueResponse = await issueDocument(issueData);
 
         if (issueResponse.success) {
+          const tx = await contract.issueDocument(
+            issueData.ownerId,
+            issueData.type,
+            issueData.name,
+            issueData.blockchainHash
+          );
+
           setUploadStatus({
             type: "success",
             message: "Document uploaded and issued successfully!",
@@ -170,7 +179,9 @@ const DocumentsPage = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="verifierWalletAddress">Verifier Wallet Address</Label>
+                <Label htmlFor="verifierWalletAddress">
+                  Verifier Wallet Address
+                </Label>
                 <Input
                   id="verifierWalletAddress"
                   value={verifierWalletAddress}
@@ -188,7 +199,9 @@ const DocumentsPage = () => {
                   className="mt-1"
                 />
               </div>
-              <Button type="submit" className="w-full">Upload</Button>
+              <Button type="submit" className="w-full">
+                Upload
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -202,7 +215,9 @@ const DocumentsPage = () => {
             exit={{ opacity: 0, y: -50 }}
           >
             <Alert
-              variant={uploadStatus.type === "error" ? "destructive" : "default"}
+              variant={
+                uploadStatus.type === "error" ? "destructive" : "default"
+              }
             >
               <AlertTitle>
                 {uploadStatus.type === "error" ? "Error" : "Success"}
@@ -244,19 +259,27 @@ const DocumentsPage = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <TableCell className="font-medium">{doc.name}</TableCell>
-                  <TableCell>{new Date(doc.issueDate).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      doc.status === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    {new Date(doc.issueDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        doc.status === "Verified"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
                       {doc.status}
                     </span>
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
-                    {doc.ownerAddress.slice(0, 6)}...{doc.ownerAddress.slice(-4)}
+                    {doc.ownerAddress.slice(0, 6)}...
+                    {doc.ownerAddress.slice(-4)}
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
-                    {doc.verifierAddress.slice(0, 6)}...{doc.verifierAddress.slice(-4)}
+                    {doc.verifierAddress.slice(0, 6)}...
+                    {doc.verifierAddress.slice(-4)}
                   </TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm">
