@@ -23,7 +23,7 @@ for col in categorical_columns:
     elif col == 'dob_valid':
         label_encoders[col].fit([True, False])
     elif col == 'gender':
-        label_encoders[col].fit(['Male', 'Female', 'Unknown'])
+        label_encoders[col].fit(['Male', 'Female', 'Unknown', 'Other'])
     elif col == 'masked_aadhaar':
         label_encoders[col].fit([True, False])
     elif col == 'address_type':
@@ -41,7 +41,7 @@ print(f"Original dataset shape: {df_aadhaar.shape}")
 print(f"Categorical columns: {categorical_columns}")
 # Label encode the categorical columns
 for category in categorical_columns:
-    df_aadhaar[category] = label_encoders[col].transform(df_aadhaar[category])
+    df_aadhaar[category] = label_encoders[category].transform(df_aadhaar[category])
 
 # Print the shape of the dataset after encoding
 print(f"Dataset shape after label encoding: {df_aadhaar.shape}")
@@ -58,7 +58,7 @@ print(df_aadhaar.isnull().sum())
 # Apply DBSCAN clustering for anomaly detection
 # Adjust eps and min_samples based on dataset size and density
 try:
-    dbscan = DBSCAN(eps=1, min_samples=2, n_jobs=-1, algorithm='auto', metric='euclidean')
+    dbscan = DBSCAN(eps=1.5, min_samples=2, n_jobs=-1, algorithm='auto', metric='euclidean')
     y_pred = dbscan.fit_predict(df_aadhaar)
 except MemoryError as mem_err:
     print("Memory Error: The dataset might be too large for the current system. Try reducing the size.")
@@ -78,6 +78,25 @@ print("DBSCAN model saved as aadhaar_dbscan_anomaly_model.pkl")
 
 # Identify and show the top outliers
 outlier_indices = np.where(y_pred == -1)[0]
+inlier_indices = np.where(y_pred != -1)[0]
 top_outliers = df.iloc[outlier_indices].sort_values(by=df.columns[0], ascending=False).head(58)
+top_inliers = df.iloc[inlier_indices].sort_values(by=df.columns[0], ascending=False).head(15)
 print("\nTop outliers:")
 print(top_outliers)
+print("\nTop inliers:")
+print(top_inliers)
+
+with open('aadhaar_dbscan_anomaly_model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+df_test = pd.read_csv('test.csv')
+print(df_test)
+
+for category in categorical_columns:
+    df_test[category] = label_encoders[category].transform(df_test[category])
+
+print(df_test)
+
+y_pred_test = model.fit_predict(df_aadhaar)
+
+print(sum(y_pred_test == -1))

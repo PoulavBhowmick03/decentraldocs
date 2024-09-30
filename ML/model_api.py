@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/predict": {"origins": "http://localhost:3000"}})
 
 # Load the trained model and preprocessor
-model = joblib.load("certidicate.pkl")
+model = joblib.load("./models/certidicate.pkl")
 
 # Function to preprocess new data using the same steps as training
 def preprocess_new_data(new_data):

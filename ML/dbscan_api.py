@@ -27,7 +27,7 @@ for col in categorical_columns:
     elif col == 'dob_valid':
         label_encoders[col].fit([True, False])
     elif col == 'gender':
-        label_encoders[col].fit(['MALE', 'Female', 'Unknown'])
+        label_encoders[col].fit(['Male', 'Female', 'Unknown', 'Other'])
     elif col == 'masked_aadhaar':
         label_encoders[col].fit([True, False])
     elif col == 'address_type':
@@ -47,8 +47,8 @@ def predict_anomaly():
     df.drop(columns=['address_entities'], inplace=True)
     #df.drop(index=[1,2,3,4], inplace=True)
 
-    df = extract_features(df)  
-
+    df = extract_features(df) 
+    data_o = pd.read_csv('extracted_features_aadhaar.csv')
     # Preprocess the input data
     for col in categorical_columns:
         if col in df:
@@ -59,12 +59,16 @@ def predict_anomaly():
      #   if col in df:
       #      df[col] = scaler.fit_transform(df[col].values.reshape(-1, 1))
     print(df)
-
+    for col in categorical_columns:
+        if col in data_o.columns:
+            data_o[col] = label_encoders[col].transform(data_o[col])
+    data_o.fillna(0, inplace=True)
+    df = pd.concat([data_o, df], axis=0)
     # Make predictions using the model
     prediction = dbscan_model.fit_predict(df)
 
     # Check if the prediction is an anomaly (outlier is represented by -1 in DBSCAN)
-    is_anomaly = prediction[0] == -1
+    is_anomaly = prediction[-1] == -1
 
     # Return the prediction result as a JSON response
     return jsonify({'anomaly': bool(is_anomaly)})
