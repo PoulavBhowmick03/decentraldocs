@@ -5,7 +5,6 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 import numpy as np
 from checks import extract_features
 
-data_o = pd.read_csv('extracted_features_aadhaar.csv')
 # Load the saved model
 with open('aadhaar_dbscan_anomaly_model.pkl', 'rb') as file:
     dbscan_model = pickle.load(file)
@@ -49,7 +48,7 @@ def predict_anomaly():
     #df.drop(index=[1,2,3,4], inplace=True)
 
     df = extract_features(df) 
-
+    data_o = pd.read_csv('extracted_features_aadhaar.csv')
     # Preprocess the input data
     for col in categorical_columns:
         if col in df:
